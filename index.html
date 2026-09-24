@@ -1,0 +1,278 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#EDF1EE;color:#12291F;
+  font-family:"Space Grotesk",system-ui,sans-serif;overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-text-size-adjust:100%}
+#stage{position:relative;width:100vw;height:100vh;touch-action:none}
+canvas{display:block}
+.hud{position:absolute;top:0;left:0;right:0;padding:14px 16px;
+  display:flex;gap:14px;align-items:baseline;pointer-events:none}
+.hud .k{font-size:12px;color:#4A6357;display:block;line-height:1}
+.hud .v{font-size:26px;font-weight:700;font-family:ui-monospace,Menlo,monospace;line-height:1.1}
+.hud .best{margin-left:auto;text-align:right}
+.streak{color:#C4603C}
+#msg{position:absolute;left:0;right:0;top:36%;text-align:center;
+  font-size:34px;font-weight:700;pointer-events:none;opacity:0;transition:opacity .18s}
+#msg.on{opacity:1}
+#hint{position:absolute;left:0;right:0;bottom:26px;text-align:center;
+  font-size:15px;color:#4A6357;pointer-events:none}
+#power{position:absolute;left:16px;right:16px;bottom:12px;height:6px;
+  background:#CBD8D2;border-radius:3px;overflow:hidden;opacity:0;transition:opacity .15s}
+#power i{display:block;height:100%;width:0;background:#D97757}
+#power.on{opacity:1}
+</style>
+
+<div id="stage">
+  <div class="hud">
+    <div><span class="k">Punktid</span><span class="v" id="hScore">0</span></div>
+    <div><span class="k">Seeria</span><span class="v streak" id="hStreak">0</span></div>
+    <div class="best"><span class="k">Rekord</span><span class="v" id="hBest">0</span></div>
+  </div>
+  <div id="msg"></div>
+  <div id="hint">Tõmba sõrmega üles ja lase lahti</div>
+  <div id="power"><i id="powerFill"></i></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const stage=$("stage");
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xEDF1EE);
+scene.fog=new THREE.Fog(0xEDF1EE,13,30);
+
+const camera=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,0.1,80);
+camera.position.set(0,2.15,2.5);
+camera.lookAt(0,0.45,-4.6);
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xffffff,0xC3D2CB,0.85));
+const sun=new THREE.DirectionalLight(0xffffff,0.72);
+sun.position.set(4,8,4);
+sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024);
+sun.shadow.camera.left=-9;sun.shadow.camera.right=9;
+sun.shadow.camera.top=10;sun.shadow.camera.bottom=-10;
+scene.add(sun);
+
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,40),
+  new THREE.MeshLambertMaterial({color:0xE3EAE6}));
+floor.rotation.x=-Math.PI/2; floor.receiveShadow=true;
+scene.add(floor);
+const grid=new THREE.GridHelper(40,40,0xB3C6BE,0xCBD8D2);
+grid.position.y=0.002; scene.add(grid);
+
+const CUP_R=0.17, CUP_H=0.36, CUP_Z=-6.0;
+const cup=new THREE.Group();
+const wall=new THREE.Mesh(
+  new THREE.CylinderGeometry(CUP_R,CUP_R*0.8,CUP_H,32,1,true),
+  new THREE.MeshLambertMaterial({color:0x1D6E56,side:THREE.DoubleSide}));
+wall.position.y=CUP_H/2; wall.castShadow=true;
+const base=new THREE.Mesh(
+  new THREE.CylinderGeometry(CUP_R*0.8,CUP_R*0.8,0.025,32),
+  new THREE.MeshLambertMaterial({color:0x14503F}));
+base.position.y=0.012;
+const rim=new THREE.Mesh(
+  new THREE.TorusGeometry(CUP_R,0.018,10,32),
+  new THREE.MeshLambertMaterial({color:0x0E3B2E}));
+rim.rotation.x=Math.PI/2; rim.position.y=CUP_H;
+const handle=new THREE.Mesh(
+  new THREE.TorusGeometry(0.105,0.024,10,22,Math.PI*1.15),
+  new THREE.MeshLambertMaterial({color:0x1D6E56}));
+handle.position.set(CUP_R+0.05,CUP_H*0.56,0);
+handle.rotation.z=-Math.PI/2.6; handle.castShadow=true;
+cup.add(wall,base,rim,handle);
+cup.position.set(0,0,CUP_Z);
+scene.add(cup);
+
+const coaster=new THREE.Mesh(
+  new THREE.CylinderGeometry(CUP_R*1.5,CUP_R*1.5,0.03,28),
+  new THREE.MeshLambertMaterial({color:0x3E5C9A}));
+coaster.castShadow=true; coaster.visible=false;
+scene.add(coaster);
+
+function robot(){
+  const u=0.019;
+  const g=new THREE.Group();
+  const clay=new THREE.MeshLambertMaterial({color:0xD97757});
+  const wht=new THREE.MeshLambertMaterial({color:0xFFFFFF});
+  const box=(w,h,d,x,y,z,m)=>{
+    const b=new THREE.Mesh(new THREE.BoxGeometry(w*u,h*u,d*u),m);
+    b.position.set(x*u,y*u,z*u); b.castShadow=true; g.add(b); return b;
+  };
+  box(12,8,6,0,0,0,clay);
+  box(16,2,5.2,0,-1.1,0,clay);
+  box(1.1,2.1,0.6,-2.6,1.7,3.05,wht);
+  box(1.1,2.1,0.6,2.6,1.7,3.05,wht);
+  box(0.9,2,4,-4.1,-5,0,clay);
+  box(0.9,2,4,-1.6,-5,0,clay);
+  box(0.9,2,4,1.6,-5,0,clay);
+  box(0.9,2,4,4.1,-5,0,clay);
+  return g;
+}
+const tok=robot();
+scene.add(tok);
+
+const REL=new THREE.Vector3(0,1.15,-0.2);
+const G=9.81;
+let state="aim", vel=new THREE.Vector3(), spin=new THREE.Vector3();
+let score=0, streak=0, best=0, settle=0;
+let cupAmp=0, cupPhase=0, coasterOn=false, coasterT=0;
+
+function resetToken(){
+  tok.position.copy(REL);
+  tok.rotation.set(0,0,0);
+  vel.set(0,0,0);
+  state="aim";
+  $("hint").textContent="Tõmba sõrmega üles ja lase lahti";
+}
+resetToken();
+
+function flash(text,color){
+  const m=$("msg");
+  m.textContent=text; m.style.color=color; m.classList.add("on");
+  setTimeout(()=>m.classList.remove("on"),750);
+}
+function updateHud(){
+  $("hScore").textContent=score;
+  $("hStreak").textContent=streak;
+  $("hBest").textContent=best;
+}
+
+let dragging=false, sx=0, sy=0, cx=0, cy=0;
+function down(e){
+  if(state!=="aim")return;
+  const p=e.touches?e.touches[0]:e;
+  dragging=true; sx=cx=p.clientX; sy=cy=p.clientY;
+  $("power").classList.add("on");
+}
+function move(e){
+  if(!dragging)return;
+  const p=e.touches?e.touches[0]:e;
+  cx=p.clientX; cy=p.clientY;
+  const len=Math.hypot(cx-sx,Math.max(sy-cy,0));
+  $("powerFill").style.width=Math.min(100,len/2.9)+"%";
+  e.preventDefault();
+}
+function up(){
+  if(!dragging)return;
+  dragging=false;
+  $("power").classList.remove("on");
+  $("powerFill").style.width="0%";
+  const dy=sy-cy, dx=cx-sx;
+  if(dy<28)return;
+  const len=Math.hypot(dx,dy);
+  const power=Math.max(0.30,Math.min(1,len/290));
+  const v0=5.0+power*5.3;
+  const vert=Math.max(0,Math.min(1,dy/len));
+  const elev=(28+24*vert)*Math.PI/180;
+  const azim=Math.max(-0.24,Math.min(0.24,dx*0.00135));
+  vel.set(
+    Math.sin(azim)*v0*Math.cos(elev),
+    Math.sin(elev)*v0,
+    -Math.cos(azim)*v0*Math.cos(elev));
+  spin.set(8+Math.random()*5,2.5,2);
+  state="fly";
+  $("hint").textContent="";
+}
+stage.addEventListener("mousedown",down);
+stage.addEventListener("mousemove",move);
+window.addEventListener("mouseup",up);
+stage.addEventListener("touchstart",down,{passive:false});
+stage.addEventListener("touchmove",move,{passive:false});
+stage.addEventListener("touchend",up);
+
+function tally(hit,blocked){
+  if(hit){
+    streak++;
+    score+=10+Math.min(20,(streak-1)*3);
+    best=Math.max(best,score);
+    flash(streak>2?"Seeria "+streak+"!":"Sisse!","#1D6E56");
+  }else{
+    streak=0;
+    flash(blocked?"Alustass!":"Mööda","#4A6357");
+  }
+  cupAmp=Math.min(1.7,streak*0.24);
+  updateHud();
+}
+
+function stepFlight(dt){
+  const prevY=tok.position.y;
+  vel.y-=G*dt;
+  tok.position.addScaledVector(vel,dt);
+  tok.rotation.x+=spin.x*dt; tok.rotation.y+=spin.y*dt; tok.rotation.z+=spin.z*dt;
+
+  const dx=tok.position.x-cup.position.x, dz=tok.position.z-cup.position.z;
+  const hd=Math.hypot(dx,dz);
+
+  if(prevY>CUP_H && tok.position.y<=CUP_H && vel.y<0 && hd<CUP_R*1.9){
+    if(coasterOn && hd<CUP_R*1.5){
+      vel.y=Math.abs(vel.y)*0.42; vel.x+=dx*2.4; vel.z+=dz*2.4;
+      state="land"; settle=0; tally(false,true); return;
+    }
+    if(hd<CUP_R*0.94){
+      state="land"; settle=0;
+      tok.position.set(cup.position.x,CUP_H*0.42,cup.position.z);
+      vel.set(0,0,0); tally(true,false); return;
+    }
+    vel.y=Math.abs(vel.y)*0.35;
+    vel.x+=(dx/hd)*1.9; vel.z+=(dz/hd)*1.9;
+  }
+
+  if(tok.position.y<=0.06){
+    tok.position.y=0.06;
+    if(Math.abs(vel.y)<1.1){
+      vel.multiplyScalar(0.4);
+      if(state==="fly"){state="land";settle=0;tally(false,false)}
+    }else{
+      vel.y=-vel.y*0.42; vel.x*=0.72; vel.z*=0.72;
+      if(state==="fly"){state="land";settle=0;tally(false,false)}
+    }
+    spin.multiplyScalar(0.55);
+  }
+}
+
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(0.033,(now-last)/1000); last=now;
+  cupPhase+=dt*(0.65+streak*0.09);
+  cup.position.x=Math.sin(cupPhase)*cupAmp;
+
+  if(streak>=3&&!coasterOn&&Math.random()<dt*0.35){coasterOn=true;coasterT=0}
+  if(coasterOn){
+    coasterT+=dt;
+    coaster.visible=true;
+    coaster.position.set(cup.position.x,CUP_H+0.04,cup.position.z);
+    if(coasterT>3.4){coasterOn=false;coaster.visible=false}
+  }
+
+  if(state==="fly"||state==="land"){
+    stepFlight(dt);
+    if(state==="land"){
+      settle+=dt;
+      if(settle>1.15)resetToken();
+    }
+  }
+  renderer.render(scene,camera);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+addEventListener("resize",()=>{
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+updateHud();
+</script>
