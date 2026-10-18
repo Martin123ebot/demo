@@ -1,0 +1,175 @@
+// =====================================================================
+// fuusika.js – KUIDAS ASJAD LIIGUVAD
+// ---------------------------------------------------------------------
+// Vastutaja: FÜÜSIK
+// Siin on: lend, gravitatsioon, põrkamine, topsi tabamine,
+// topsi liikumine ja alustassi ilmumine.
+//
+// Põhiidee: igal kaadril (umbes 60 korda sekundis) arvutatakse,
+// kui palju keha väikese ajavahemiku dt jooksul liigub.
+//   kiirus   = kiirus + kiirendus * dt
+//   asukoht  = asukoht + kiirus * dt
+// =====================================================================
+
+
+// ---------- Lennu olek ----------
+// state ütleb, mis mängus parasjagu toimub:
+//   "aim"  = mängija sihib (keha ootab)
+//   "fly"  = keha lendab
+//   "land" = vise on lõppenud, keha veereb/rahuneb ja varsti algab uus vise
+let state = "aim";
+let vel = new THREE.Vector3();  // keha kiirus (x, y, z) m/s
+let spin = new THREE.Vector3(); // keha pöörlemiskiirus ümber x, y, z telje
+let settle = 0;                 // mitu sekundit on vise juba lõppenud olnud
+
+
+// ---------- Topsi liikumise olek ----------
+let cupAmp = 0;        // kui kaugele küljele tops liigub (0 = seisab paigal)
+let cupPhase = 0;      // kus kohas liikumisel tops parasjagu on
+let coasterOn = false; // kas alustass on praegu topsi peal
+let coasterT = 0;      // mitu sekundit alustass on juba topsi peal olnud
+
+
+// Paneb keha tagasi algasendisse ja valmistab ette uue viske.
+function resetToken() {
+  tok.position.copy(REL);   // tagasi algkohta (seaded.js: REL)
+  tok.rotation.set(0, 0, 0);
+  vel.set(0, 0, 0);
+  state = "aim";
+  setHint("Tõmba sõrmega üles ja lase lahti"); // menuu.js
+}
+
+
+// Arvutab viske algkiiruse sõrme tõmbe järgi.
+// dx = tõmme küljele (pikslites), dy = tõmme üles (pikslites).
+// Tagastab kiiruse vektori või null, kui tõmme oli liiga lühike.
+function calcThrowVelocity(dx, dy) {
+  if (dy < THROW.minDrag) return null;       // liiga väike tõmme -> viset ei ole
+  const len = Math.hypot(dx, dy);            // tõmbe pikkus
+
+  // Jõud 0..1: mida pikem tõmme, seda tugevam vise.
+  const power = Math.max(THROW.minPower, Math.min(1, len / THROW.fullDrag));
+  const v0 = THROW.minSpeed + power * THROW.extraSpeed;  // algkiirus m/s
+
+  // Viskenurk: mida otsem tõmme üles, seda kõrgem kaar.
+  const vert = Math.max(0, Math.min(1, dy / len));
+  const elev = (THROW.minAngle + THROW.extraAngle * vert) * Math.PI / 180; // kraadid -> radiaanid
+
+  // Külgsuund: tõmme paremale -> vise paremale.
+  const azim = Math.max(-THROW.maxSide, Math.min(THROW.maxSide, dx * THROW.sideFactor));
+
+  // Jaga kiirus kolmeks osaks: küljele (x), üles (y), edasi (z).
+  return new THREE.Vector3(
+    Math.sin(azim) * v0 * Math.cos(elev),
+    Math.sin(elev) * v0,
+    -Math.cos(azim) * v0 * Math.cos(elev));
+}
+
+
+// Alustab viset: annab kehale algkiiruse ja pöörlemise.
+function startThrow(v) {
+  vel.copy(v);
+  spin.set(8 + Math.random() * 5, 2.5, 2); // juhuslik pöörlemine, et näeks elavam välja
+  state = "fly";
+  setHint(""); // peida vihje lennu ajaks
+}
+
+
+// Liigutab keha ühe väikese ajasammu dt võrra edasi.
+// Kontrollib ka, kas keha tabas topsi, alustassi või maad.
+function stepFlight(dt) {
+  const prevY = tok.position.y;   // kõrgus enne sammu (et teada, kas keha kukkus üle topsi ääre)
+
+  // 1) Gravitatsioon: kiirus alla kasvab iga sammuga.
+  vel.y -= G * dt;
+
+  // 2) Liigu kiiruse järgi edasi.
+  tok.position.addScaledVector(vel, dt);
+
+  // 3) Pöörle.
+  tok.rotation.x += spin.x * dt;
+  tok.rotation.y += spin.y * dt;
+  tok.rotation.z += spin.z * dt;
+
+  // Kui kaugel on keha topsi keskelt (ülevalt vaadates).
+  const dx = tok.position.x - cup.position.x;
+  const dz = tok.position.z - cup.position.z;
+  const hd = Math.hypot(dx, dz);
+
+  // 4) Kas keha kukkus just topsi ääre kõrgusele, topsi lähedal?
+  if (prevY > CUP_H && tok.position.y <= CUP_H && vel.y < 0 && hd < CUP_R * 1.9) {
+
+    // 4a) Alustass on peal -> keha põrkab tagasi.
+    if (coasterOn && hd < CUP_R * 1.5) {
+      vel.y = Math.abs(vel.y) * COASTER.bounce;
+      vel.x += dx * COASTER.push;
+      vel.z += dz * COASTER.push;
+      state = "land"; settle = 0;
+      tally(false, true); // menuu.js: "Alustass!"
+      return;
+    }
+
+    // 4b) Keha on topsi suu kohal -> SISSE!
+    if (hd < CUP_R * 0.94) {
+      state = "land"; settle = 0;
+      tok.position.set(cup.position.x, CUP_H * 0.42, cup.position.z); // pane keha topsi sisse
+      vel.set(0, 0, 0);
+      tally(true, false); // menuu.js: "Sisse!"
+      return;
+    }
+
+    // 4c) Keha tabas topsi äärt -> põrkab üles ja küljele.
+    vel.y = Math.abs(vel.y) * BOUNCE.rim;
+    vel.x += (dx / hd) * BOUNCE.rimPush;
+    vel.z += (dz / hd) * BOUNCE.rimPush;
+  }
+
+  // 5) Kas keha jõudis maapinnale?
+  if (tok.position.y <= 0.06) {
+    tok.position.y = 0.06; // ära lase maa sisse vajuda
+
+    if (Math.abs(vel.y) < BOUNCE.stopSpeed) {
+      // Kukub aeglaselt -> jääb peaaegu seisma.
+      vel.multiplyScalar(0.4);
+      if (state === "fly") { state = "land"; settle = 0; tally(false, false); } // "Mööda"
+    } else {
+      // Kukub kiiresti -> põrkab üles, kiirus väheneb.
+      vel.y = -vel.y * BOUNCE.ground;
+      vel.x *= BOUNCE.groundFriction;
+      vel.z *= BOUNCE.groundFriction;
+      if (state === "fly") { state = "land"; settle = 0; tally(false, false); } // "Mööda"
+    }
+    spin.multiplyScalar(BOUNCE.spinLoss); // pöörlemine aeglustub
+  }
+}
+
+
+// Muudab raskust seeria järgi: mida pikem seeria, seda rohkem tops liigub.
+// Kutsutakse välja menuu.js failist pärast igat viset.
+function updateDifficulty(streak) {
+  cupAmp = Math.min(CUP_MOVE.maxAmp, streak * CUP_MOVE.perStreak);
+}
+
+
+// Liigutab topsi küljelt küljele ja paneb vahel alustassi peale.
+// Kutsutakse välja igal kaadril (mang.js).
+function updateCup(dt) {
+  // Tops kõigub siinuse järgi: vasakule-paremale-vasakule...
+  cupPhase += dt * (CUP_MOVE.baseSpeed + streak * CUP_MOVE.speedPerStreak);
+  cup.position.x = Math.sin(cupPhase) * cupAmp;
+
+  // Alustass: alates teatud seeriast ilmub vahel juhuslikult.
+  if (streak >= COASTER.fromStreak && !coasterOn && Math.random() < dt * COASTER.chance) {
+    coasterOn = true;
+    coasterT = 0;
+  }
+  if (coasterOn) {
+    coasterT += dt;
+    coaster.visible = true;
+    coaster.position.set(cup.position.x, CUP_H + 0.04, cup.position.z); // alustass liigub koos topsiga
+    if (coasterT > COASTER.duration) {  // aeg täis -> alustass kaob
+      coasterOn = false;
+      coaster.visible = false;
+    }
+  }
+}
