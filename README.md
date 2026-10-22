@@ -1,6 +1,6 @@
 # Viskemäng
 
-Mängija tõmbab sõrme või hiirega ja viskab robotit topsi. Mäng on tehtud three.js 3D-teegiga (versioon **r128**).
+Mängija hoiab hiire vasakut nuppu või sõrme all, tõmbab üles ja viskab lahtilaskmisel robotit topsi. Mäng on tehtud three.js 3D-teegiga (versioon **r128**).
 
 Mängi: https://martin123ebot.github.io/demo/
 

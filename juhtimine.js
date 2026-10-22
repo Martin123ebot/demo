@@ -13,6 +13,7 @@
 
 
 let dragging = false; // kas mängija parasjagu tõmbab
+let activePointerId = null;
 let sx = 0, sy = 0;   // kus tõmme algas (ekraani pikslites)
 let cx = 0, cy = 0;   // kus sõrm/hiir praegu on
 const aimDots = Array.from({ length: 12 }, () => {
@@ -46,23 +47,25 @@ function hideAimDots() {
 }
 
 
-// Hiir alla või sõrm ekraanile: tõmme algab.
+// Hiirenupp alla või sõrm ekraanile: tõmme algab.
 function down(e) {
-  if (state !== "aim") return;             // lennu ajal ei saa uuesti visata
-  const p = e.touches ? e.touches[0] : e;  // telefonis on sõrm, arvutis hiir
+  if (state !== "aim" || dragging || !e.isPrimary) return;
+  if (e.pointerType === "mouse" && e.button !== 0) return;
+
   dragging = true;
-  sx = cx = p.clientX;
-  sy = cy = p.clientY;
+  activePointerId = e.pointerId;
+  sx = cx = e.clientX;
+  sy = cy = e.clientY;
+  stage.setPointerCapture(e.pointerId);
   $("power").classList.add("on");          // näita võimsusriba
 }
 
 
 // Hiir või sõrm liigub: uuenda võimsusriba.
 function move(e) {
-  if (!dragging) return;
-  const p = e.touches ? e.touches[0] : e;
-  cx = p.clientX;
-  cy = p.clientY;
+  if (!dragging || e.pointerId !== activePointerId) return;
+  cx = e.clientX;
+  cy = e.clientY;
   // Riba pikkus sõltub tõmbe pikkusest (alla tõmmet ei arvestata).
   const len = Math.hypot(cx - sx, Math.max(sy - cy, 0));
   $("powerFill").style.width = Math.min(100, len / 2.9) + "%";
@@ -71,10 +74,13 @@ function move(e) {
 }
 
 
-// Hiir või sõrm lahti: vise lendu.
-function up() {
-  if (!dragging) return;
+// Hiirenupp või sõrm lahti: vise lendu.
+function up(e) {
+  if (!dragging || e.pointerId !== activePointerId) return;
+  cx = e.clientX;
+  cy = e.clientY;
   dragging = false;
+  activePointerId = null;
   $("power").classList.remove("on");       // peida võimsusriba
   $("powerFill").style.width = "0%";
   hideAimDots();
@@ -87,12 +93,20 @@ function up() {
 }
 
 
-// ---------- Ühenda funktsioonid hiire ja sõrmega ----------
-// Arvuti (hiir):
-stage.addEventListener("mousedown", down);
-stage.addEventListener("mousemove", move);
-window.addEventListener("mouseup", up);    // window: lahtilaskmine töötab ka siis, kui hiir on ekraani servast väljas
-// Telefon (sõrm). passive:false lubab move() sees lehe kerimise ära keelata.
-stage.addEventListener("touchstart", down, { passive: false });
-stage.addEventListener("touchmove", move, { passive: false });
-stage.addEventListener("touchend", up);
+// Tühistatud puute korral lõpeta tõmme viset tegemata.
+function cancel(e) {
+  if (!dragging || e.pointerId !== activePointerId) return;
+  dragging = false;
+  activePointerId = null;
+  $("power").classList.remove("on");
+  $("powerFill").style.width = "0%";
+  hideAimDots();
+}
+
+
+// ---------- Hiire ja puuteekraani ühine juhtimine ----------
+stage.addEventListener("pointerdown", down);
+stage.addEventListener("pointermove", move);
+stage.addEventListener("pointerup", up);
+stage.addEventListener("pointercancel", cancel);
+stage.addEventListener("lostpointercapture", cancel);

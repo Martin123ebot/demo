@@ -36,7 +36,7 @@ function resetToken() {
   tok.rotation.set(0, 0, 0);
   vel.set(0, 0, 0);
   state = "aim";
-  setHint("Tõmba sõrmega üles ja lase lahti"); // menuu.js
+  setHint("Hoia vasakut hiirenuppu või sõrme all, tõmba üles ja lase lahti"); // menuu.js
 }
 
 
