@@ -4,8 +4,6 @@ Mängija valib eseme, hoiab hiire vasakut nuppu või sõrme all, tõmbab üles j
 
 Lennu ajal pöörleb paberlennuk; lendaval esemel on maapinnavari ning viimase viske lennujoon jääb järgmise sihtimise ajaks poolläbipaistvana nähtavale.
 
-Iga tabamus annab alguses 10 punkti ning järjestikused tabamused kahekordistavad viske punktid (10, 20, 40 jne). Möödalask punktisummat ei vähenda, kuid katkestab seeria ja järgmine tabamus annab taas 10 punkti.
-
 Mängi: https://martin123ebot.github.io/demo/
 
 ---
