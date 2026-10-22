@@ -16,8 +16,8 @@ Mängi: https://martin123ebot.github.io/demo/
 | `heli.js` | helid (praegu tühi) | Liides |
 | `stseen.js` | taust, udu, kaamera, valgus, põrand | Kunstnik |
 | `objektid.js` | tops, alustass, robot | Kunstnik |
-| `fuusika.js` | lend, gravitatsioon, põrkamine, topsi tabamine, topsi liikumine | Füüsik |
-| `juhtimine.js` | hiir ja sõrm, võimsusriba, poolik viske trajektoori punktiir | Liides |
+| `fuusika.js` | lend, gravitatsioon, põrkamine, topsi tabamine, topsi liikumine, sihtimise trajektoori arvutus | Füüsik |
+| `juhtimine.js` | hiir ja sõrm, võimsusriba ning trajektoori punktiiri kuvamine | Liides |
 | `mang.js` | põhitsükkel, mis paneb kõik tööle | **ÜHINE** |
 
 **Reegel nr 1: igaüks muudab ainult oma faile.** Siis ei kirjuta keegi teise tööd üle.

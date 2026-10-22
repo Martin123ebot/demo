@@ -27,21 +27,14 @@ const aimDots = Array.from({ length: 12 }, () => {
 
 // Näitab viske esimest poolt, et mängija ei näeks, kas vise tabab topsi.
 function updateAimDots(dx, dy) {
-  const v = calcThrowVelocity(dx, dy);
-  if (!v) {
+  const trajectory = calcAimTrajectory(dx, dy, aimDots.length);
+  if (!trajectory) {
     aimDots.forEach(dot => { dot.visible = false; });
     return;
   }
 
-  const flightTime = (v.y + Math.sqrt(v.y * v.y + 2 * G * (REL.y - 0.06))) / G;
-  const previewTime = flightTime * 0.5;
-
   aimDots.forEach((dot, i) => {
-    const t = previewTime * (i + 1) / aimDots.length;
-    dot.position.set(
-      REL.x + v.x * t,
-      REL.y + v.y * t - 0.5 * G * t * t,
-      REL.z + v.z * t);
+    dot.position.copy(trajectory[i]);
     dot.visible = true;
   });
 }

@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------
 // Vastutaja: FÜÜSIK
 // Siin on: lend, gravitatsioon, põrkamine, topsi tabamine,
-// topsi liikumine ja alustassi ilmumine.
+// topsi liikumine, alustassi ilmumine ja sihtimise trajektoori arvutus.
 //
 // Põhiidee: igal kaadril (umbes 60 korda sekundis) arvutatakse,
 // kui palju keha väikese ajavahemiku dt jooksul liigub.
@@ -63,6 +63,24 @@ function calcThrowVelocity(dx, dy) {
     Math.sin(azim) * v0 * Math.cos(elev),
     Math.sin(elev) * v0,
     -Math.cos(azim) * v0 * Math.cos(elev));
+}
+
+
+// Arvutab trajektoori esimese poole punktid sihtimise punktiiri jaoks.
+function calcAimTrajectory(dx, dy, pointCount) {
+  const v = calcThrowVelocity(dx, dy);
+  if (!v) return null;
+
+  const flightTime = (v.y + Math.sqrt(v.y * v.y + 2 * G * (REL.y - 0.06))) / G;
+  const previewTime = flightTime * 0.5;
+
+  return Array.from({ length: pointCount }, (_, i) => {
+    const t = previewTime * (i + 1) / pointCount;
+    return new THREE.Vector3(
+      REL.x + v.x * t,
+      REL.y + v.y * t - 0.5 * G * t * t,
+      REL.z + v.z * t);
+  });
 }
 
 
