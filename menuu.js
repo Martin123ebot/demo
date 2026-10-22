@@ -47,9 +47,10 @@ function setHint(text) {
 function tally(hit, blocked) {
   if (hit) {
     streak++;
-    score += SCORE.hit + Math.min(SCORE.maxBonus, (streak - 1) * SCORE.streakBonus);
+    const points = SCORE.hit * 2 ** (streak - 1);
+    score += points;
     best = Math.max(best, score);
-    flash(streak > 2 ? "Seeria " + streak + "!" : "Sisse!", "#1D6E56");
+    flash((streak > 2 ? "Seeria " + streak + "! " : "Sisse! ") + "+" + points, "#1D6E56");
     playHitSound();
   } else {
     streak = 0;
