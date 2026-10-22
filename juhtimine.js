@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------
 // Vastutaja: LIIDESE TEGIJA
 // Siin on: hiire/sõrme vajutus, tõmbamine ja lahtilaskmine,
-// võimsusriba. Hiljem tuleb siia ka punktiir ja R-klahv (restart).
+// võimsusriba ja poolik viske trajektoori punktiir.
 //
 // Kuidas vise käib:
 //   1) vajuta hiir alla / pane sõrm ekraanile  -> down()
@@ -15,6 +15,42 @@
 let dragging = false; // kas mängija parasjagu tõmbab
 let sx = 0, sy = 0;   // kus tõmme algas (ekraani pikslites)
 let cx = 0, cy = 0;   // kus sõrm/hiir praegu on
+const aimDots = Array.from({ length: 12 }, () => {
+  const dot = new THREE.Mesh(
+    new THREE.SphereGeometry(0.025, 8, 6),
+    new THREE.MeshBasicMaterial({ color: 0xD97757 }));
+  dot.visible = false;
+  scene.add(dot);
+  return dot;
+});
+
+
+// Näitab viske esimest poolt, et mängija ei näeks, kas vise tabab topsi.
+function updateAimDots(dx, dy) {
+  const v = calcThrowVelocity(dx, dy);
+  if (!v) {
+    aimDots.forEach(dot => { dot.visible = false; });
+    return;
+  }
+
+  const flightTime = (v.y + Math.sqrt(v.y * v.y + 2 * G * (REL.y - 0.06))) / G;
+  const previewTime = flightTime * 0.5;
+
+  aimDots.forEach((dot, i) => {
+    const t = previewTime * (i + 1) / aimDots.length;
+    dot.position.set(
+      REL.x + v.x * t,
+      REL.y + v.y * t - 0.5 * G * t * t,
+      REL.z + v.z * t);
+    dot.visible = true;
+  });
+}
+
+
+// Peidab viske trajektoori punktiiri.
+function hideAimDots() {
+  aimDots.forEach(dot => { dot.visible = false; });
+}
 
 
 // Hiir alla või sõrm ekraanile: tõmme algab.
@@ -37,6 +73,7 @@ function move(e) {
   // Riba pikkus sõltub tõmbe pikkusest (alla tõmmet ei arvestata).
   const len = Math.hypot(cx - sx, Math.max(sy - cy, 0));
   $("powerFill").style.width = Math.min(100, len / 2.9) + "%";
+  updateAimDots(cx - sx, sy - cy);
   e.preventDefault(); // ära lase telefonil lehte kerida
 }
 
@@ -47,6 +84,7 @@ function up() {
   dragging = false;
   $("power").classList.remove("on");       // peida võimsusriba
   $("powerFill").style.width = "0%";
+  hideAimDots();
 
   // Kui palju tõmmati üles (dy) ja küljele (dx).
   const dy = sy - cy, dx = cx - sx;
