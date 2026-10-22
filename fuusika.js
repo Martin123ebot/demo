@@ -33,7 +33,8 @@ let coasterT = 0;      // mitu sekundit alustass on juba topsi peal olnud
 // Paneb keha tagasi algasendisse ja valmistab ette uue viske.
 function resetToken() {
   tok.position.copy(REL);   // tagasi algkohta (seaded.js: REL)
-  tok.rotation.set(0, 0, 0);
+  if (tok === throwables.paperPlane) tok.rotation.set(Math.PI / 2, 0, 0);
+  else tok.rotation.set(0, 0, 0);
   vel.set(0, 0, 0);
   state = "aim";
   setHint("Hoia vasakut hiirenuppu või sõrme all, tõmba üles ja lase lahti"); // menuu.js
@@ -87,7 +88,13 @@ function calcAimTrajectory(dx, dy, pointCount) {
 // Alustab viset: annab kehale algkiiruse ja pöörlemise.
 function startThrow(v) {
   vel.copy(v);
-  spin.set(8 + Math.random() * 5, 2.5, 2); // juhuslik pöörlemine, et näeks elavam välja
+  clearThrowTrail();
+  recordThrowTrailPoint(tok.position);
+  if (tok === throwables.paperPlane) {
+    spin.set(0, 0, 8 + Math.random() * 5);
+  } else {
+    spin.set(8 + Math.random() * 5, 2.5, 2); // juhuslik pöörlemine, et näeks elavam välja
+  }
   state = "fly";
   setHint(""); // peida vihje lennu ajaks
 }
@@ -103,6 +110,8 @@ function stepFlight(dt) {
 
   // 2) Liigu kiiruse järgi edasi.
   tok.position.addScaledVector(vel, dt);
+  tok.position.y = Math.max(tok.position.y, 0.06);
+  if (state === "fly") recordThrowTrailPoint(tok.position);
 
   // 3) Pöörle.
   tok.rotation.x += spin.x * dt;

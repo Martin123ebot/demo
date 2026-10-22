@@ -33,6 +33,8 @@ function loop(now) {
     }
   }
 
+  objectSelect.disabled = state !== "aim";
+  updateTokenShadow();
   renderer.render(scene, camera); // stseen.js: joonista pilt
   requestAnimationFrame(loop);    // palu järgmine kaader
 }
