@@ -73,7 +73,9 @@ const COASTER = {
 
 // ---------- Punktid ----------
 const SCORE = {
-  hit: 10               // algpunktid esimese tabamuse eest; järjestikused tabamused kahekordistavad neid
+  hit: 10,              // punktid ühe tabamuse eest
+  streakBonus: 3,       // iga järgmine tabamus seerias annab nii palju lisapunkte
+  maxBonus: 20          // suurim lisapunktide arv ühe viske eest
 };
 
 
