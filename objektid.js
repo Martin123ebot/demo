@@ -61,7 +61,7 @@ coaster.visible = false;
 scene.add(coaster);
 
 
-// ---------- Visatav keha (robot) ----------
+// ---------- Visatavad esemed ----------
 // Teeb väikese roboti kastidest: keha, käed, silmad ja neli jalga.
 // u = ühe "klotsi" suurus meetrites. Kõik mõõdud korrutatakse sellega.
 function robot() {
@@ -91,7 +91,198 @@ function robot() {
   return g;
 }
 
-// tok = visatav keha. Kui tahta teist keha (pall, pinal jne),
-// tuleb teha uus funktsioon nagu robot() ja kasutada seda siin.
-const tok = robot();
-scene.add(tok);
+function ball() {
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.12, 20, 14),
+    new THREE.MeshLambertMaterial({ color: 0x4D8BC9 }));
+  mesh.castShadow = true;
+  return mesh;
+}
+
+function rock() {
+  const mesh = new THREE.Mesh(
+    new THREE.DodecahedronGeometry(0.12, 0),
+    new THREE.MeshLambertMaterial({ color: 0x777B73 }));
+  mesh.scale.set(1.15, 0.85, 1);
+  mesh.castShadow = true;
+  return mesh;
+}
+
+function paperPlane() {
+  const shape = new THREE.Shape();
+  shape.moveTo(0, -0.2);
+  shape.lineTo(-0.16, 0.08);
+  shape.lineTo(-0.025, 0.025);
+  shape.lineTo(0, 0.12);
+  shape.lineTo(0.025, 0.025);
+  shape.lineTo(0.16, 0.08);
+  shape.closePath();
+
+  const plane = new THREE.Mesh(
+    new THREE.ShapeGeometry(shape),
+    new THREE.MeshLambertMaterial({ color: 0x3478D4, side: THREE.DoubleSide }));
+  plane.rotation.x = Math.PI / 2;
+  plane.castShadow = true;
+  return plane;
+}
+
+function pencilCase() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(0.31, 0.13, 0.13),
+    new THREE.MeshLambertMaterial({ color: 0xD97757 }));
+  body.castShadow = true;
+  g.add(body);
+
+  const zipper = new THREE.Mesh(
+    new THREE.BoxGeometry(0.25, 0.008, 0.012),
+    new THREE.MeshLambertMaterial({ color: 0xE8C86A }));
+  zipper.position.y = 0.069;
+  g.add(zipper);
+  return g;
+}
+
+function pen() {
+  const g = new THREE.Group();
+  const barrel = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.022, 0.022, 0.29, 12),
+    new THREE.MeshLambertMaterial({ color: 0x347A66 }));
+  barrel.rotation.z = Math.PI / 2;
+  barrel.castShadow = true;
+  g.add(barrel);
+
+  const tip = new THREE.Mesh(
+    new THREE.ConeGeometry(0.022, 0.055, 12),
+    new THREE.MeshLambertMaterial({ color: 0xB5B9B5 }));
+  tip.rotation.z = -Math.PI / 2;
+  tip.position.x = 0.17;
+  g.add(tip);
+  return g;
+}
+
+function pencil() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.022, 0.022, 0.29, 6),
+    new THREE.MeshLambertMaterial({ color: 0xE5B94F }));
+  body.rotation.z = Math.PI / 2;
+  body.castShadow = true;
+  g.add(body);
+
+  const tip = new THREE.Mesh(
+    new THREE.ConeGeometry(0.022, 0.06, 6),
+    new THREE.MeshLambertMaterial({ color: 0xD8B78A }));
+  tip.rotation.z = -Math.PI / 2;
+  tip.position.x = 0.175;
+  g.add(tip);
+  return g;
+}
+
+function pillow() {
+  const shape = new THREE.Shape();
+  shape.moveTo(-0.12, -0.14);
+  shape.bezierCurveTo(-0.16, -0.14, -0.19, -0.12, -0.19, -0.08);
+  shape.lineTo(-0.19, 0.08);
+  shape.bezierCurveTo(-0.19, 0.12, -0.16, 0.14, -0.12, 0.14);
+  shape.bezierCurveTo(-0.07, 0.14, -0.03, 0.13, 0, 0.135);
+  shape.bezierCurveTo(0.03, 0.13, 0.07, 0.14, 0.12, 0.14);
+  shape.bezierCurveTo(0.16, 0.14, 0.19, 0.12, 0.19, 0.08);
+  shape.lineTo(0.19, -0.08);
+  shape.bezierCurveTo(0.19, -0.12, 0.16, -0.14, 0.12, -0.14);
+  shape.bezierCurveTo(0.07, -0.14, 0.03, -0.13, 0, -0.135);
+  shape.bezierCurveTo(-0.03, -0.13, -0.07, -0.14, -0.12, -0.14);
+
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth: 0.12,
+    bevelEnabled: true,
+    bevelSegments: 5,
+    steps: 1,
+    bevelSize: 0.03,
+    bevelThickness: 0.04,
+    curveSegments: 10
+  });
+  geometry.translate(0, 0, -0.1);
+  const mesh = new THREE.Mesh(
+    geometry,
+    new THREE.MeshLambertMaterial({ color: 0xE8E1D2 }));
+  mesh.castShadow = true;
+  return mesh;
+}
+
+const throwables = {
+  robot: robot(),
+  ball: ball(),
+  rock: rock(),
+  paperPlane: paperPlane(),
+  pen: pen(),
+  pencilCase: pencilCase(),
+  pencil: pencil(),
+  pillow: pillow()
+};
+
+// Tok on valitud visatav ese; teised jäävad stseenis peidetuks.
+let tok = throwables.robot;
+Object.values(throwables).forEach(item => {
+  item.visible = item === tok;
+  scene.add(item);
+});
+
+// Näitab lennu all maapinnale pehmet varju.
+const tokenShadow = new THREE.Mesh(
+  new THREE.CircleGeometry(1, 32),
+  new THREE.MeshBasicMaterial({ color: 0x26352D, transparent: true, opacity: 0.22, depthWrite: false }));
+tokenShadow.rotation.x = -Math.PI / 2;
+tokenShadow.position.y = 0.006;
+tokenShadow.visible = false;
+scene.add(tokenShadow);
+
+// Jätab viimase viske lennujoone mänguväljale.
+const trailCapacity = 1200;
+const trailGeometry = new THREE.BufferGeometry();
+const trailPositions = new Float32Array(trailCapacity * 3);
+trailGeometry.setAttribute("position", new THREE.BufferAttribute(trailPositions, 3));
+trailGeometry.setDrawRange(0, 0);
+const throwTrail = new THREE.Line(
+  trailGeometry,
+  new THREE.LineBasicMaterial({ color: 0xD97757, transparent: true, opacity: 0.38, depthWrite: false }));
+throwTrail.visible = false;
+throwTrail.frustumCulled = false;
+scene.add(throwTrail);
+let trailCount = 0;
+
+function clearThrowTrail() {
+  trailCount = 0;
+  trailGeometry.setDrawRange(0, 0);
+  throwTrail.visible = false;
+}
+
+function recordThrowTrailPoint(position) {
+  if (trailCount >= trailCapacity) return;
+  trailGeometry.attributes.position.setXYZ(trailCount, position.x, position.y, position.z);
+  trailCount++;
+  trailGeometry.setDrawRange(0, trailCount);
+  trailGeometry.attributes.position.needsUpdate = true;
+  throwTrail.visible = trailCount > 1;
+}
+
+function updateTokenShadow() {
+  const height = Math.max(0, tok.position.y - 0.06);
+  tokenShadow.visible = true;
+  tokenShadow.position.set(tok.position.x, 0.006, tok.position.z);
+  tokenShadow.scale.set(0.16 + height * 0.06, 0.09 + height * 0.035, 1);
+  tokenShadow.material.opacity = Math.max(0.06, 0.22 - height * 0.025);
+}
+
+// Vahetab visatava eseme välja ainult uue viske sihtimise ajal.
+const objectSelect = $("objectSelect");
+objectSelect.addEventListener("change", () => {
+  if (state !== "aim") {
+    objectSelect.value = Object.keys(throwables).find(key => throwables[key] === tok);
+    return;
+  }
+
+  tok.visible = false;
+  tok = throwables[objectSelect.value];
+  tok.visible = true;
+  resetToken();
+});
