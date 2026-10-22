@@ -2,6 +2,8 @@
 
 Mängija hoiab hiire vasakut nuppu või sõrme all, tõmbab üles ja viskab lahtilaskmisel robotit topsi. Mäng on tehtud three.js 3D-teegiga (versioon **r128**).
 
+Iga tabamus annab alguses 10 punkti ning järjestikused tabamused kahekordistavad viske punktid (10, 20, 40 jne). Möödalask punktisummat ei vähenda, kuid katkestab seeria ja järgmine tabamus annab taas 10 punkti.
+
 Mängi: https://martin123ebot.github.io/demo/
 
 ---
