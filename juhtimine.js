@@ -49,7 +49,7 @@ function hideAimDots() {
 
 // Hiirenupp alla või sõrm ekraanile: tõmme algab.
 function down(e) {
-  if (objectSelect.contains(e.target)) return;
+  if (objectSelect.parentElement.contains(e.target) || environmentSelect.parentElement.contains(e.target)) return;
   if (state !== "aim" || dragging || !e.isPrimary) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
 

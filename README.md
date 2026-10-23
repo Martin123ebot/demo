@@ -2,6 +2,8 @@
 
 Mängija valib eseme, hoiab hiire vasakut nuppu või sõrme all, tõmbab üles ja viskab lahtilaskmisel eseme topsi. Valida saab roboti, palli, kivi, paberlennuki, pastaka, pinali, pliiatsi või padja. Mäng on tehtud three.js 3D-teegiga (versioon **r128**).
 
+Ülaosas saab valida keskkonna: Maal on sinine üleminekuga taevas, kauguse udu, muru, puud ja pilved; Kuul on must tähistaevas, Maa, hall pind ja kraatrid; klassiruumis on tahvel, aknad, uks, kell ja koolilauad. Klassiruumis muutub sihtmärk prügiämbriks. Keskkonnad joonistatakse kujunditest, eraldi pildifaile pole vaja.
+
 Lennu ajal pöörleb paberlennuk; lendaval esemel on maapinnavari ning viimase viske lennujoon jääb järgmise sihtimise ajaks poolläbipaistvana nähtavale.
 
 Iga tabamus annab alguses 10 punkti ning järjestikused tabamused kahekordistavad viske punktid (10, 20, 40 jne). Möödalask punktisummat ei vähenda, kuid katkestab seeria ja järgmine tabamus annab taas 10 punkti.
@@ -14,12 +16,12 @@ Mängi: https://martin123ebot.github.io/demo/
 
 | Fail | Mis seal on | Vastutaja |
 |---|---|---|
-| `index.html` | ekraani tekstid ja nende välimus (CSS), failide ühendamine | Liides |
+| `index.html` | ekraani tekstid ja nende välimus (CSS), ese- ja keskkonnavalik, failide ühendamine | Liides |
 | `seaded.js` | **kõik numbrid**: gravitatsioon, viske tugevus, põrkamine, punktid | **ÜHINE** |
 | `menuu.js` | punktid, seeria, rekord, teated ("Sisse!"), hiljem menüü | Liides |
 | `heli.js` | helid (praegu tühi) | Liides |
-| `stseen.js` | taust, udu, kaamera, valgus, põrand | Kunstnik |
-| `objektid.js` | tops, alustass, valitavad viskeesemed, vari ja viske jälg | Kunstnik |
+| `stseen.js` | Maa/Kuu/klassiruumi taustad, udu, kaamera, valgus, põrand ja maastik | Kunstnik |
+| `objektid.js` | tops/prügikast, alustass, valitavad viskeesemed, vari ja viske jälg | Kunstnik |
 | `fuusika.js` | lend, gravitatsioon, pöörlemine, põrkamine, topsi tabamine, topsi liikumine | Füüsik |
 | `juhtimine.js` | hiir ja sõrm, võimsusriba ning trajektoori punktiiri kuvamine | Liides |
 | `mang.js` | põhitsükkel, mis paneb kõik tööle | **ÜHINE** |

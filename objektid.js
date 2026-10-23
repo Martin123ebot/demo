@@ -49,6 +49,59 @@ cup.add(wall, base, rim, handle);
 cup.position.set(0, 0, CUP_Z);
 scene.add(cup);
 
+// Prügiämber kasutab mängus sama sihtmärgi asukohta ja tabamisala mis tops.
+const trashBin = new THREE.Group();
+const binWall = new THREE.Mesh(
+  new THREE.CylinderGeometry(CUP_R, CUP_R * 0.82, CUP_H, 24, 1, true),
+  new THREE.MeshLambertMaterial({ color: 0x48565B, side: THREE.DoubleSide }));
+binWall.position.y = CUP_H / 2;
+binWall.castShadow = true;
+const binBottom = new THREE.Mesh(
+  new THREE.CylinderGeometry(CUP_R * 0.82, CUP_R * 0.82, 0.025, 24),
+  new THREE.MeshLambertMaterial({ color: 0x283237 }));
+binBottom.position.y = 0.025;
+const binOpening = new THREE.Mesh(
+  new THREE.CylinderGeometry(CUP_R * 0.78, CUP_R * 0.78, 0.012, 24),
+  new THREE.MeshLambertMaterial({ color: 0x20272A }));
+binOpening.position.y = CUP_H - 0.025;
+const binRim = new THREE.Mesh(
+  new THREE.TorusGeometry(CUP_R * 0.94, 0.018, 8, 24),
+  new THREE.MeshLambertMaterial({ color: 0x273236 }));
+binRim.rotation.x = Math.PI / 2;
+binRim.position.y = CUP_H;
+
+const labelCanvas = document.createElement("canvas");
+labelCanvas.width = 256;
+labelCanvas.height = 96;
+const labelContext = labelCanvas.getContext("2d");
+labelContext.fillStyle = "#E6D783";
+labelContext.fillRect(0, 0, labelCanvas.width, labelCanvas.height);
+labelContext.fillStyle = "#263A31";
+labelContext.font = "bold 46px sans-serif";
+labelContext.textAlign = "center";
+labelContext.textBaseline = "middle";
+labelContext.fillText("PRÜGI", 128, 49);
+const binLabel = new THREE.Mesh(
+  new THREE.PlaneGeometry(0.22, 0.082),
+  new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(labelCanvas) }));
+binLabel.position.set(0, CUP_H * 0.55, CUP_R * 0.91);
+trashBin.add(binWall, binBottom, binOpening, binRim, binLabel);
+trashBin.position.set(0, 0, CUP_Z);
+trashBin.visible = false;
+trashBin.traverse(part => {
+  if (part.isMesh) part.castShadow = true;
+});
+scene.add(trashBin);
+
+function updateTargetAppearance() {
+  const isClassroom = environmentSelect.value === "classroom";
+  cup.visible = !isClassroom;
+  trashBin.visible = isClassroom;
+}
+
+environmentSelect.addEventListener("change", updateTargetAppearance);
+updateTargetAppearance();
+
 
 // ---------- Alustass ----------
 // Sinine ketas, mis ilmub vahel topsi peale ja põrgatab keha tagasi.

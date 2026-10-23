@@ -30,12 +30,17 @@ canvas{display:block}
 .hud .k{font-size:12px;color:#4A6357;display:block;line-height:1}
 .hud .v{font-size:26px;font-weight:700;font-family:ui-monospace,Menlo,monospace;line-height:1.1}
 .hud .best{margin-left:auto;text-align:right}
-.object-picker{position:absolute;top:12px;left:50%;transform:translateX(-50%);
-  display:flex;align-items:center;gap:7px;pointer-events:auto}
-.object-picker span{font-size:12px;color:#4A6357}
-.object-picker select{max-width:42vw;padding:7px 9px;border:1px solid #CBD8D2;
+.pickers{position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:12px;pointer-events:auto}
+.object-picker,.environment-picker{display:flex;align-items:center;gap:7px}
+.object-picker span,.environment-picker span{font-size:12px;color:#4A6357}
+.object-picker select,.environment-picker select{max-width:34vw;padding:7px 9px;border:1px solid #CBD8D2;
   border-radius:8px;background:#fff;color:#12291F;font:inherit}
-.object-picker select:disabled{opacity:.65}
+.object-picker select:disabled,.environment-picker select:disabled{opacity:.65}
+@media(max-width:600px){
+  .pickers{top:58px;gap:6px}
+  .object-picker,.environment-picker{gap:4px}
+}
 .streak{color:#C4603C}
 /* Suur teade keset ekraani ("Sisse!", "Mööda"). Nähtav ainult klassiga "on" */
 #msg{position:absolute;left:0;right:0;top:36%;text-align:center;
@@ -63,19 +68,29 @@ canvas{display:block}
     <div><span class="k">Punktid</span><span class="v" id="hScore">0</span></div>
     <div><span class="k">Seeria</span><span class="v streak" id="hStreak">0</span></div>
     <div class="best"><span class="k">Rekord</span><span class="v" id="hBest">0</span></div>
-    <label class="object-picker" for="objectSelect">
-      <span>Ese</span>
-      <select id="objectSelect">
-        <option value="robot">Robot</option>
-        <option value="ball">Pall</option>
-        <option value="rock">Kivi</option>
-        <option value="paperPlane">Paberlennuk</option>
-        <option value="pen">Pastakas</option>
-        <option value="pencilCase">Pinal</option>
-        <option value="pencil">Pliiats</option>
-        <option value="pillow">Padi</option>
-      </select>
-    </label>
+    <div class="pickers">
+      <label class="object-picker" for="objectSelect">
+        <span>Ese</span>
+        <select id="objectSelect">
+          <option value="robot">Robot</option>
+          <option value="ball">Pall</option>
+          <option value="rock">Kivi</option>
+          <option value="paperPlane">Paberlennuk</option>
+          <option value="pen">Pastakas</option>
+          <option value="pencilCase">Pinal</option>
+          <option value="pencil">Pliiats</option>
+          <option value="pillow">Padi</option>
+        </select>
+      </label>
+      <label class="environment-picker" for="environmentSelect">
+        <span>Koht</span>
+        <select id="environmentSelect">
+          <option value="earth">Maa</option>
+          <option value="moon">Kuu</option>
+          <option value="classroom">Klassiruum</option>
+        </select>
+      </label>
+    </div>
   </div>
   <!-- Suur teade keset ekraani -->
   <div id="msg"></div>
