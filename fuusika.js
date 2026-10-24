@@ -21,6 +21,21 @@ let state = "aim";
 let vel = new THREE.Vector3();  // keha kiirus (x, y, z) m/s
 let spin = new THREE.Vector3(); // keha pöörlemiskiirus ümber x, y, z telje
 let settle = 0;                 // mitu sekundit on vise juba lõppenud olnud
+let gravityReversed = false;
+
+
+// Valib asukoha järgi Maa või Kuu gravitatsiooni ning arvestab suunda.
+function getGravity() {
+  const magnitude = environmentSelect.value === "moon" ? MOON_G : G;
+  return gravityReversed ? -magnitude : magnitude;
+}
+
+
+// Pöörab gravitatsiooni suuna ümber ja tagastab nupu jaoks uue suuna nime.
+function toggleGravityDirection() {
+  gravityReversed = !gravityReversed;
+  return gravityReversed ? "üles" : "alla";
+}
 
 
 // ---------- Topsi liikumise olek ----------
@@ -38,6 +53,14 @@ function resetToken() {
   vel.set(0, 0, 0);
   state = "aim";
   setHint("Hoia vasakut hiirenuppu või sõrme all, tõmba üles ja lase lahti"); // menuu.js
+}
+
+
+// Alustab viske uuesti algusest, säilitades punktid ja seeria.
+function restartThrow() {
+  settle = 0;
+  resetToken();
+  clearThrowTrail();
 }
 
 
@@ -72,14 +95,16 @@ function calcAimTrajectory(dx, dy, pointCount) {
   const v = calcThrowVelocity(dx, dy);
   if (!v) return null;
 
-  const flightTime = (v.y + Math.sqrt(v.y * v.y + 2 * G * (REL.y - 0.06))) / G;
+  const gravity = getGravity();
+  const gravityMagnitude = Math.abs(gravity);
+  const flightTime = (v.y + Math.sqrt(v.y * v.y + 2 * gravityMagnitude * (REL.y - 0.06))) / gravityMagnitude;
   const previewTime = flightTime * 0.5;
 
   return Array.from({ length: pointCount }, (_, i) => {
     const t = previewTime * (i + 1) / pointCount;
     return new THREE.Vector3(
       REL.x + v.x * t,
-      REL.y + v.y * t - 0.5 * G * t * t,
+      REL.y + v.y * t - 0.5 * gravity * t * t,
       REL.z + v.z * t);
   });
 }
@@ -106,7 +131,7 @@ function stepFlight(dt) {
   const prevY = tok.position.y;   // kõrgus enne sammu (et teada, kas keha kukkus üle topsi ääre)
 
   // 1) Gravitatsioon: kiirus alla kasvab iga sammuga.
-  vel.y -= G * dt;
+  vel.y -= getGravity() * dt;
 
   // 2) Liigu kiiruse järgi edasi.
   tok.position.addScaledVector(vel, dt);

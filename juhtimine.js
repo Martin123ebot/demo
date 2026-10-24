@@ -49,7 +49,9 @@ function hideAimDots() {
 
 // Hiirenupp alla või sõrm ekraanile: tõmme algab.
 function down(e) {
-  if (objectSelect.parentElement.contains(e.target) || environmentSelect.parentElement.contains(e.target)) return;
+  if (objectSelect.parentElement.contains(e.target) ||
+      environmentSelect.parentElement.contains(e.target) ||
+      e.target.closest(".game-actions")) return;
   if (state !== "aim" || dragging || !e.isPrimary) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
 
@@ -111,3 +113,17 @@ stage.addEventListener("pointermove", move);
 stage.addEventListener("pointerup", up);
 stage.addEventListener("pointercancel", cancel);
 stage.addEventListener("lostpointercapture", cancel);
+
+$("gravityButton").addEventListener("click", () => {
+  $("gravityButton").textContent = "Gravitatsioon: " + toggleGravityDirection();
+});
+
+$("restartButton").addEventListener("click", () => {
+  dragging = false;
+  activePointerId = null;
+  $("power").classList.remove("on");
+  $("powerFill").style.width = "0%";
+  hideAimDots();
+  $("msg").classList.remove("on");
+  restartThrow();
+});

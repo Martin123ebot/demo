@@ -12,6 +12,7 @@
 // ---------- Gravitatsioon ----------
 // Raskuskiirendus Maal (m/s²). Kuu peal oleks see 1.62.
 const G = 9.81;
+const MOON_G = 1.62;
 
 
 // ---------- Sihtmärk (tops) ----------
