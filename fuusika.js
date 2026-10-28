@@ -21,20 +21,23 @@ let state = "aim";
 let vel = new THREE.Vector3();  // keha kiirus (x, y, z) m/s
 let spin = new THREE.Vector3(); // keha pöörlemiskiirus ümber x, y, z telje
 let settle = 0;                 // mitu sekundit on vise juba lõppenud olnud
-let gravityReversed = false;
+let selectedPlanet = "earth";
 
 
-// Valib asukoha järgi Maa või Kuu gravitatsiooni ning arvestab suunda.
+// Tagastab valitud planeedi pinnagravitatsiooni.
 function getGravity() {
-  const magnitude = environmentSelect.value === "moon" ? MOON_G : G;
-  return gravityReversed ? -magnitude : magnitude;
+  const planet = PLANETS.find(item => item.id === selectedPlanet);
+  if (!planet) throw new Error("Valitud planeedi gravitatsiooni ei leitud.");
+  return planet.gravity;
 }
 
 
-// Pöörab gravitatsiooni suuna ümber ja tagastab nupu jaoks uue suuna nime.
-function toggleGravityDirection() {
-  gravityReversed = !gravityReversed;
-  return gravityReversed ? "üles" : "alla";
+// Valib gravitatsiooniks planeedi.
+function selectGravityPlanet(planetId) {
+  if (!PLANETS.some(planet => planet.id === planetId)) {
+    throw new Error("Tundmatu planeet: " + planetId);
+  }
+  selectedPlanet = planetId;
 }
 
 

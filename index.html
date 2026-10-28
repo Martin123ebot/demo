@@ -40,6 +40,13 @@ canvas{display:block}
 .game-actions{position:absolute;top:62px;right:16px;display:flex;gap:8px;pointer-events:auto}
 .game-actions button{padding:8px 11px;border:1px solid #CBD8D2;border-radius:8px;
   background:#fff;color:#12291F;font:500 13px "Space Grotesk",system-ui,sans-serif;cursor:pointer}
+.gravity-picker{position:relative}
+#gravityMenu{position:absolute;top:calc(100% + 5px);right:0;z-index:3;min-width:190px;
+  padding:4px;background:#fff;border:1px solid #CBD8D2;border-radius:8px;
+  box-shadow:0 4px 12px #12291f22}
+#gravityMenu[hidden]{display:none}
+#gravityMenu button{display:block;width:100%;text-align:left;border:0}
+#gravityMenu button:hover{background:#EDF1EE}
 @media(max-width:600px){
   .pickers{top:58px;gap:6px}
   .object-picker,.environment-picker{gap:4px}
@@ -97,7 +104,10 @@ canvas{display:block}
     </div>
   </div>
   <div class="game-actions">
-    <button id="gravityButton" type="button">Gravitatsioon: alla</button>
+    <div class="gravity-picker">
+      <button id="gravityButton" type="button" aria-expanded="false" aria-controls="gravityMenu">Gravitatsioon: Maa</button>
+      <div id="gravityMenu" hidden></div>
+    </div>
     <button id="restartButton" type="button">Alusta viset uuesti</button>
   </div>
   <!-- Suur teade keset ekraani -->

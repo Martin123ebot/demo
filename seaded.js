@@ -9,10 +9,20 @@
 // =====================================================================
 
 
-// ---------- Gravitatsioon ----------
-// Raskuskiirendus Maal (m/s²). Kuu peal oleks see 1.62.
-const G = 9.81;
-const MOON_G = 1.62;
+// ---------- Planeetide gravitatsioon ----------
+// Pinnagravitatsioon meetrites sekundis ruudus.
+const PLANETS = [
+  { id: "mercury", name: "Merkuur", gravity: 3.70 },
+  { id: "venus", name: "Veenus", gravity: 8.87 },
+  { id: "moon", name: "Kuu", gravity: 1.62 },
+  { id: "earth", name: "Maa", gravity: 9.81 },
+  { id: "mars", name: "Marss", gravity: 3.71 },
+  { id: "jupiter", name: "Jupiter", gravity: 24.79 },
+  { id: "saturn", name: "Saturn", gravity: 10.44 },
+  { id: "uranus", name: "Uraan", gravity: 8.69 },
+  { id: "neptune", name: "Neptuun", gravity: 11.15 },
+  { id: "sun", name: "Päike", gravity: 274.0 }
+];
 
 
 // ---------- Sihtmärk (tops) ----------

@@ -4,7 +4,7 @@ Mängija valib eseme, hoiab hiire vasakut nuppu või sõrme all, tõmbab üles j
 
 Ülaosas saab valida keskkonna: Maal on sinine üleminekuga taevas, kauguse udu, muru, puud ja pilved; Kuul on must tähistaevas, Maa, hall pind ja kraatrid; klassiruumis on tahvel, aknad, uks, kell ja koolilauad. Klassiruumis muutub sihtmärk prügiämbriks. Keskkonnad joonistatakse kujunditest, eraldi pildifaile pole vaja.
 
-Keskkonnavalik määrab ka gravitatsiooni tugevuse: Maa kasutab 9,81 m/s² ja Kuu 1,62 m/s². Gravitatsiooni nupp pöörab suuna üles või alla. „Alusta viset uuesti” paneb eseme algasendisse, kuid jätab punktid ja seeria alles.
+Gravitatsiooninupu menüüst saab valida Päikesesüsteemi planeedi; valik määrab viske gravitatsiooni tugevuse. „Alusta viset uuesti” paneb eseme algasendisse, kuid jätab punktid ja seeria alles.
 
 Lennu ajal pöörleb paberlennuk; lendaval esemel on maapinnavari ning viimase viske lennujoon jääb järgmise sihtimise ajaks poolläbipaistvana nähtavale.
 
@@ -19,13 +19,13 @@ Mängi: https://martin123ebot.github.io/demo/
 | Fail | Mis seal on | Vastutaja |
 |---|---|---|
 | `index.html` | ekraani tekstid ja nende välimus (CSS), valikud, gravitatsiooni- ja restartnupp, failide ühendamine | Liides |
-| `seaded.js` | **kõik numbrid**: Maa ja Kuu gravitatsioon, viske tugevus, põrkamine, punktid | **ÜHINE** |
+| `seaded.js` | **kõik numbrid**: planeetide gravitatsioon, viske tugevus, põrkamine, punktid | **ÜHINE** |
 | `menuu.js` | punktid, seeria, rekord, teated ("Sisse!"), hiljem menüü | Liides |
 | `heli.js` | helid (praegu tühi) | Liides |
 | `stseen.js` | Maa/Kuu/klassiruumi taustad, udu, kaamera, valgus, põrand ja maastik | Kunstnik |
 | `objektid.js` | tops/prügikast, alustass, valitavad viskeesemed, vari ja viske jälg | Kunstnik |
-| `fuusika.js` | lend, keskkonna gravitatsioon ja suund, pöörlemine, põrkamine, topsi tabamine, topsi liikumine | Füüsik |
-| `juhtimine.js` | hiir ja sõrm, võimsusriba, trajektoori punktiir, gravitatsiooni- ja restartnupud | Liides |
+| `fuusika.js` | lend, valitud planeedi gravitatsioon, pöörlemine, põrkamine, topsi tabamine, topsi liikumine | Füüsik |
+| `juhtimine.js` | hiir ja sõrm, võimsusriba, trajektoori punktiir, planeedi valik ja restartnupp | Liides |
 | `mang.js` | põhitsükkel, mis paneb kõik tööle | **ÜHINE** |
 
 **Reegel nr 1: igaüks muudab ainult oma faile.** Siis ei kirjuta keegi teise tööd üle.

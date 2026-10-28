@@ -114,8 +114,35 @@ stage.addEventListener("pointerup", up);
 stage.addEventListener("pointercancel", cancel);
 stage.addEventListener("lostpointercapture", cancel);
 
-$("gravityButton").addEventListener("click", () => {
-  $("gravityButton").textContent = "Gravitatsioon: " + toggleGravityDirection();
+const gravityButton = $("gravityButton");
+const gravityMenu = $("gravityMenu");
+
+PLANETS.forEach(planet => {
+  const option = document.createElement("button");
+  option.type = "button";
+  option.dataset.planet = planet.id;
+  option.textContent = planet.name + " — " + planet.gravity.toFixed(2) + " m/s²";
+  gravityMenu.appendChild(option);
+});
+
+function updateGravityButton() {
+  const planet = PLANETS.find(item => item.id === selectedPlanet);
+  gravityButton.textContent = "Gravitatsioon: " + planet.name + " (" + planet.gravity.toFixed(2) + " m/s²)";
+}
+
+gravityButton.addEventListener("click", () => {
+  const isExpanded = gravityButton.getAttribute("aria-expanded") === "true";
+  gravityButton.setAttribute("aria-expanded", String(!isExpanded));
+  gravityMenu.hidden = isExpanded;
+});
+
+gravityMenu.addEventListener("click", e => {
+  const option = e.target.closest("button[data-planet]");
+  if (!option) return;
+  selectGravityPlanet(option.dataset.planet);
+  updateGravityButton();
+  gravityMenu.hidden = true;
+  gravityButton.setAttribute("aria-expanded", "false");
 });
 
 $("restartButton").addEventListener("click", () => {
@@ -127,3 +154,5 @@ $("restartButton").addEventListener("click", () => {
   $("msg").classList.remove("on");
   restartThrow();
 });
+
+updateGravityButton();
