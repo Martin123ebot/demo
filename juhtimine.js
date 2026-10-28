@@ -51,6 +51,7 @@ function hideAimDots() {
 function down(e) {
   if (objectSelect.parentElement.contains(e.target) ||
       environmentSelect.parentElement.contains(e.target) ||
+      surfaceSelect.parentElement.contains(e.target) ||
       e.target.closest(".game-actions")) return;
   if (state !== "aim" || dragging || !e.isPrimary) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;

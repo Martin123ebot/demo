@@ -22,6 +22,7 @@ let vel = new THREE.Vector3();  // keha kiirus (x, y, z) m/s
 let spin = new THREE.Vector3(); // keha pöörlemiskiirus ümber x, y, z telje
 let settle = 0;                 // mitu sekundit on vise juba lõppenud olnud
 let selectedPlanet = "earth";
+let bounceIntoCupAttempted = false;
 
 
 // Tagastab valitud planeedi pinnagravitatsiooni.
@@ -54,6 +55,7 @@ function resetToken() {
   if (tok === throwables.paperPlane) tok.rotation.set(Math.PI / 2, 0, 0);
   else tok.rotation.set(0, 0, 0);
   vel.set(0, 0, 0);
+  bounceIntoCupAttempted = false;
   state = "aim";
   setHint("Hoia vasakut hiirenuppu või sõrme all, tõmba üles ja lase lahti"); // menuu.js
 }
@@ -116,6 +118,7 @@ function calcAimTrajectory(dx, dy, pointCount) {
 // Alustab viset: annab kehale algkiiruse ja pöörlemise.
 function startThrow(v) {
   vel.copy(v);
+  bounceIntoCupAttempted = false;
   clearThrowTrail();
   recordThrowTrailPoint(tok.position);
   if (tok === throwables.paperPlane) {
@@ -139,7 +142,6 @@ function stepFlight(dt) {
   // 2) Liigu kiiruse järgi edasi.
   tok.position.addScaledVector(vel, dt);
   tok.position.y = Math.max(tok.position.y, 0.06);
-  if (state === "fly") recordThrowTrailPoint(tok.position);
 
   // 3) Pöörle.
   tok.rotation.x += spin.x * dt;
@@ -183,6 +185,27 @@ function stepFlight(dt) {
   if (tok.position.y <= 0.06) {
     tok.position.y = 0.06; // ära lase maa sisse vajuda
 
+    if (surfaceSelect.value === "mud" || surfaceSelect.value === "sand") {
+      vel.set(0, 0, 0);
+      spin.set(0, 0, 0);
+      if (state === "fly") { state = "land"; settle = 0; tally(false, false); }
+      return;
+    }
+
+    if (surfaceSelect.value === "rubber") {
+      if (Math.abs(vel.y) < BOUNCE.stopSpeed) {
+        vel.set(0, 0, 0);
+        spin.set(0, 0, 0);
+        if (state === "fly") { state = "land"; settle = 0; tally(false, false); }
+      } else {
+        vel.y = Math.abs(vel.y) * SURFACE.rubberBounce;
+        vel.x *= BOUNCE.groundFriction;
+        vel.z *= BOUNCE.groundFriction;
+        spin.multiplyScalar(BOUNCE.spinLoss);
+      }
+      return;
+    }
+
     if (Math.abs(vel.y) < BOUNCE.stopSpeed) {
       // Kukub aeglaselt -> jääb peaaegu seisma.
       vel.multiplyScalar(0.4);
@@ -192,10 +215,23 @@ function stepFlight(dt) {
       vel.y = -vel.y * BOUNCE.ground;
       vel.x *= BOUNCE.groundFriction;
       vel.z *= BOUNCE.groundFriction;
-      if (state === "fly") { state = "land"; settle = 0; tally(false, false); } // "Mööda"
+      if (!bounceIntoCupAttempted) {
+        bounceIntoCupAttempted = true;
+        const timeToCup = (cup.position.z - tok.position.z) / vel.z;
+        const predictedX = tok.position.x + vel.x * timeToCup;
+        const gravity = getGravity();
+        const heightToCup = CUP_H - tok.position.y;
+        if (timeToCup > Math.sqrt(2 * heightToCup / gravity) &&
+            Math.abs(predictedX - cup.position.x) < CUP_R * 0.94 &&
+            Math.random() < BOUNCE.groundCupChance) {
+          vel.y = heightToCup / timeToCup + 0.5 * gravity * timeToCup;
+        }
+      }
     }
     spin.multiplyScalar(BOUNCE.spinLoss); // pöörlemine aeglustub
   }
+
+  if (state === "fly") recordThrowTrailPoint(tok.position);
 }
 
 

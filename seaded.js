@@ -56,10 +56,17 @@ const THROW = {
 const BOUNCE = {
   ground: 0.42,         // maast põrkamine
   groundFriction: 0.72, // kui palju kiirusest jääb alles pärast maapõrget
+  groundCupChance: 0.35,// õnneliku põrke võimalus, kui vise suundub topsi poole
   stopSpeed: 1.1,       // kui kukkumiskiirus on väiksem kui see, jääb keha maha
   rim: 0.35,            // topsi äärest põrkamine
   rimPush: 1.9,         // kui tugevalt topsi äär keha külje peale lükkab
   spinLoss: 0.55        // kui palju pöörlemisest jääb alles pärast maapõrget
+};
+
+
+// ---------- Põranda pinnad ----------
+const SURFACE = {
+  rubberBounce: 0.92
 };
 
 

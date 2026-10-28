@@ -10,6 +10,7 @@
 // Leht, kuhu 3D-pilt joonistatakse (vt index.html: <div id="stage">).
 const stage = $("stage");
 const environmentSelect = $("environmentSelect");
+const surfaceSelect = $("surfaceSelect");
 
 
 // ---------- Stseen ----------
@@ -102,6 +103,24 @@ grid.position.y = 0.002;           // natuke põrandast kõrgemal, et ei vilguks
 grid.material.transparent = true;
 grid.material.opacity = 0.16;
 scene.add(grid);
+
+function updateFloorAppearance() {
+  const normalColors = {
+    earth: 0x4D9B55,
+    moon: 0x92969A,
+    classroom: 0xB58A5B
+  };
+  const surfaceColors = {
+    rubber: 0x343B3A,
+    mud: 0x59412C,
+    sand: 0xD6BF83
+  };
+  const color = surfaceColors[surfaceSelect.value] || normalColors[environmentSelect.value] || normalColors.earth;
+  floor.material.color.set(color);
+  grid.visible = surfaceSelect.value === "normal" && environmentSelect.value === "earth";
+}
+
+surfaceSelect.addEventListener("change", updateFloorAppearance);
 
 
 // ---------- Maa maastik ----------
@@ -320,8 +339,6 @@ function setEnvironment(environment) {
     scene.fog.color.set(0x777A7E);
     scene.fog.near = 18;
     scene.fog.far = 55;
-    floor.material.color.set(0x92969A);
-    grid.visible = false;
     ambientLight.color.set(0xDCE5F2);
     ambientLight.groundColor.set(0x575B60);
     ambientLight.intensity = 0.48;
@@ -333,8 +350,6 @@ function setEnvironment(environment) {
     scene.fog.color.set(0xE7E1D2);
     scene.fog.near = 28;
     scene.fog.far = 75;
-    floor.material.color.set(0xB58A5B);
-    grid.visible = false;
     ambientLight.color.set(0xFFF2D8);
     ambientLight.groundColor.set(0x82735F);
     ambientLight.intensity = 0.8;
@@ -346,8 +361,6 @@ function setEnvironment(environment) {
     scene.fog.color.set(0xA8D5F0);
     scene.fog.near = 13;
     scene.fog.far = 42;
-    floor.material.color.set(0x4D9B55);
-    grid.visible = true;
     ambientLight.color.set(0xFFFFFF);
     ambientLight.groundColor.set(0xC3D2CB);
     ambientLight.intensity = 0.85;
@@ -357,6 +370,7 @@ function setEnvironment(environment) {
   moonSky.visible = onMoon;
   moonSurface.visible = onMoon;
   classroom.visible = inClassroom;
+  updateFloorAppearance();
 }
 
 environmentSelect.addEventListener("change", () => setEnvironment(environmentSelect.value));

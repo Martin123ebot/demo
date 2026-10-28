@@ -6,6 +6,10 @@ Mängija valib eseme, hoiab hiire vasakut nuppu või sõrme all, tõmbab üles j
 
 Gravitatsiooninupu menüüst saab valida Päikesesüsteemi planeedi; valik määrab viske gravitatsiooni tugevuse. „Alusta viset uuesti” paneb eseme algasendisse, kuid jätab punktid ja seeria alles.
 
+„Pind” valikust saab valida tavalise põranda, kummipõranda, mudapõranda või liivapõranda. Kummipõrand põrgatab visatava eseme suure hooga; muda ja liiv peatavad selle kohe põrandale maandudes. Valik muudab kogu põranda pinda.
+
+Tavalisel põrandal võib topsi poole sihitud vise 35% tõenäosusega õnnestuda ka pärast põrget.
+
 Lennu ajal pöörleb paberlennuk; lendaval esemel on maapinnavari ning viimase viske lennujoon jääb järgmise sihtimise ajaks poolläbipaistvana nähtavale.
 
 Iga tabamus annab alguses 10 punkti ning järjestikused tabamused kahekordistavad viske punktid (10, 20, 40 jne). Möödalask punktisummat ei vähenda, kuid katkestab seeria ja järgmine tabamus annab taas 10 punkti.
@@ -18,13 +22,13 @@ Mängi: https://martin123ebot.github.io/demo/
 
 | Fail | Mis seal on | Vastutaja |
 |---|---|---|
-| `index.html` | ekraani tekstid ja nende välimus (CSS), valikud, gravitatsiooni- ja restartnupp, failide ühendamine | Liides |
-| `seaded.js` | **kõik numbrid**: planeetide gravitatsioon, viske tugevus, põrkamine, punktid | **ÜHINE** |
+| `index.html` | ekraani tekstid ja nende välimus (CSS), eseme-, koha- ja pinnavalik, gravitatsiooni- ja restartnupp | Liides |
+| `seaded.js` | **kõik numbrid**: planeetide gravitatsioon, põrandapõrge, viske tugevus, punktid | **ÜHINE** |
 | `menuu.js` | punktid, seeria, rekord, teated ("Sisse!"), hiljem menüü | Liides |
 | `heli.js` | helid (praegu tühi) | Liides |
-| `stseen.js` | Maa/Kuu/klassiruumi taustad, udu, kaamera, valgus, põrand ja maastik | Kunstnik |
-| `objektid.js` | tops/prügikast, alustass, valitavad viskeesemed, vari ja viske jälg | Kunstnik |
-| `fuusika.js` | lend, valitud planeedi gravitatsioon, pöörlemine, põrkamine, topsi tabamine, topsi liikumine | Füüsik |
+| `stseen.js` | Maa/Kuu/klassiruumi taustad, valitud põrandapinna välimus, udu, kaamera, valgus ja maastik | Kunstnik |
+| `objektid.js` | tops/prügikast, alustass, viskeesemed, vari ja viske jälg | Kunstnik |
+| `fuusika.js` | lend, gravitatsioon, põrandapindade põrked, pöörlemine, topsi tabamine, topsi liikumine | Füüsik |
 | `juhtimine.js` | hiir ja sõrm, võimsusriba, trajektoori punktiir, planeedi valik ja restartnupp | Liides |
 | `mang.js` | põhitsükkel, mis paneb kõik tööle | **ÜHINE** |
 
