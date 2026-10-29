@@ -52,7 +52,7 @@ function resetWind() {
     windSpeed = 0;
     windVelocity.set(0, 0, 0);
     windAcceleration.set(0, 0, 0);
-    updateWindIndicator(windFrom, windSpeed);
+    updateWindIndicator(windVelocity, windSpeed);
     return;
   }
 
@@ -61,7 +61,7 @@ function resetWind() {
   windSpeed = WIND.minSpeed + Math.random() * (WIND.maxSpeed - WIND.minSpeed);
   windVelocity.copy(windFrom).negate().multiplyScalar(windSpeed);
   windAcceleration.copy(windFrom).multiplyScalar(-windSpeed * WIND.accelerationPerSpeed);
-  updateWindIndicator(windFrom, windSpeed);
+  updateWindIndicator(windVelocity, windSpeed);
 }
 
 environmentSelect.addEventListener("change", resetWind);
