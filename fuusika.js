@@ -23,6 +23,10 @@ let spin = new THREE.Vector3(); // keha pöörlemiskiirus ümber x, y, z telje
 let settle = 0;                 // mitu sekundit on vise juba lõppenud olnud
 let selectedPlanet = "earth";
 let bounceIntoCupAttempted = false;
+let windFrom = new THREE.Vector3(0, 0, -1);
+let windSpeed = 0;
+const windVelocity = new THREE.Vector3();
+const windAcceleration = new THREE.Vector3();
 
 
 // Tagastab valitud planeedi pinnagravitatsiooni.
@@ -42,6 +46,53 @@ function selectGravityPlanet(planetId) {
 }
 
 
+// Valib uue tuule suuna ja tugevuse järgmiseks viskeks.
+function resetWind() {
+  if (environmentSelect.value !== "earth") {
+    windSpeed = 0;
+    windVelocity.set(0, 0, 0);
+    windAcceleration.set(0, 0, 0);
+    updateWindIndicator(windFrom, windSpeed);
+    return;
+  }
+
+  const angle = Math.random() * Math.PI * 2;
+  windFrom.set(Math.sin(angle), 0, -Math.cos(angle));
+  windSpeed = WIND.minSpeed + Math.random() * (WIND.maxSpeed - WIND.minSpeed);
+  windVelocity.copy(windFrom).negate().multiplyScalar(windSpeed);
+  windAcceleration.copy(windFrom).multiplyScalar(-windSpeed * WIND.accelerationPerSpeed);
+  updateWindIndicator(windFrom, windSpeed);
+}
+
+environmentSelect.addEventListener("change", resetWind);
+
+
+// Tagastab valitud eseme viske- ja õhuomadused.
+function getObjectPhysics() {
+  if (tok === throwables.rock) return OBJECT_PHYSICS.rock;
+  if (tok === throwables.paperPlane) return OBJECT_PHYSICS.paperPlane;
+  return OBJECT_PHYSICS.robot;
+}
+
+
+// Arvutab tuule, õhutakistuse ja paberlennuki tõstejõu koosmõju.
+function getAirAcceleration(velocity) {
+  const physics = getObjectPhysics();
+  const acceleration = windAcceleration.clone().multiplyScalar(physics.windResponse);
+  if (physics.drag === 0 && physics.lift === 0) return acceleration;
+
+  const relativeVelocity = new THREE.Vector3(
+    velocity.x - windVelocity.x,
+    velocity.y,
+    velocity.z - windVelocity.z);
+  const airSpeed = relativeVelocity.length();
+  const horizontalSpeed = Math.hypot(relativeVelocity.x, relativeVelocity.z);
+  acceleration.addScaledVector(relativeVelocity, -physics.drag * airSpeed);
+  acceleration.y += Math.min(12, physics.lift * horizontalSpeed * horizontalSpeed);
+  return acceleration;
+}
+
+
 // ---------- Topsi liikumise olek ----------
 let cupAmp = 0;        // kui kaugele küljele tops liigub (0 = seisab paigal)
 let cupPhase = 0;      // kus kohas liikumisel tops parasjagu on
@@ -56,6 +107,7 @@ function resetToken() {
   else tok.rotation.set(0, 0, 0);
   vel.set(0, 0, 0);
   bounceIntoCupAttempted = false;
+  resetWind();
   state = "aim";
   setHint("Hoia vasakut hiirenuppu või sõrme all, tõmba üles ja lase lahti"); // menuu.js
 }
@@ -82,16 +134,17 @@ function calcThrowVelocity(dx, dy) {
 
   // Viskenurk: mida otsem tõmme üles, seda kõrgem kaar.
   const vert = Math.max(0, Math.min(1, dy / len));
-  const elev = (THROW.minAngle + THROW.extraAngle * vert) * Math.PI / 180; // kraadid -> radiaanid
+  const elev = (THROW.minAngle + THROW.extraAngle * vert) *
+    getObjectPhysics().launchAngleScale * Math.PI / 180; // kraadid -> radiaanid
 
   // Külgsuund: tõmme paremale -> vise paremale.
   const azim = Math.max(-THROW.maxSide, Math.min(THROW.maxSide, dx * THROW.sideFactor));
 
   // Jaga kiirus kolmeks osaks: küljele (x), üles (y), edasi (z).
   return new THREE.Vector3(
-    Math.sin(azim) * v0 * Math.cos(elev),
-    Math.sin(elev) * v0,
-    -Math.cos(azim) * v0 * Math.cos(elev));
+    Math.sin(azim) * v0 * Math.cos(elev) * getObjectPhysics().throwSpeed,
+    Math.sin(elev) * v0 * getObjectPhysics().throwSpeed,
+    -Math.cos(azim) * v0 * Math.cos(elev) * getObjectPhysics().throwSpeed);
 }
 
 
@@ -101,16 +154,40 @@ function calcAimTrajectory(dx, dy, pointCount) {
   if (!v) return null;
 
   const gravity = getGravity();
+  if (tok === throwables.paperPlane) {
+    const position = REL.clone();
+    const velocity = v.clone();
+    const positions = [position.clone()];
+    const dt = 0.016;
+    for (let i = 0; i < 1200; i++) {
+      velocity.y -= gravity * dt;
+      velocity.addScaledVector(getAirAcceleration(velocity), dt);
+      position.addScaledVector(velocity, dt);
+      if (position.y <= 0.06) {
+        position.y = 0.06;
+        positions.push(position.clone());
+        break;
+      }
+      positions.push(position.clone());
+    }
+
+    return Array.from({ length: pointCount }, (_, i) => {
+      const sample = Math.max(1, Math.floor((positions.length - 1) * 0.5 * (i + 1) / pointCount));
+      return positions[sample].clone();
+    });
+  }
+
   const gravityMagnitude = Math.abs(gravity);
   const flightTime = (v.y + Math.sqrt(v.y * v.y + 2 * gravityMagnitude * (REL.y - 0.06))) / gravityMagnitude;
   const previewTime = flightTime * 0.5;
+  const airAcceleration = getAirAcceleration(v);
 
   return Array.from({ length: pointCount }, (_, i) => {
     const t = previewTime * (i + 1) / pointCount;
     return new THREE.Vector3(
-      REL.x + v.x * t,
+      REL.x + v.x * t + 0.5 * airAcceleration.x * t * t,
       REL.y + v.y * t - 0.5 * gravity * t * t,
-      REL.z + v.z * t);
+      REL.z + v.z * t + 0.5 * airAcceleration.z * t * t);
   });
 }
 
@@ -122,7 +199,7 @@ function startThrow(v) {
   clearThrowTrail();
   recordThrowTrailPoint(tok.position);
   if (tok === throwables.paperPlane) {
-    spin.set(0, 0, 8 + Math.random() * 5);
+    spin.set(0, 0, 0.35);
   } else {
     spin.set(8 + Math.random() * 5, 2.5, 2); // juhuslik pöörlemine, et näeks elavam välja
   }
@@ -138,15 +215,21 @@ function stepFlight(dt) {
 
   // 1) Gravitatsioon: kiirus alla kasvab iga sammuga.
   vel.y -= getGravity() * dt;
+  vel.addScaledVector(getAirAcceleration(vel), dt);
 
   // 2) Liigu kiiruse järgi edasi.
   tok.position.addScaledVector(vel, dt);
   tok.position.y = Math.max(tok.position.y, 0.06);
 
   // 3) Pöörle.
-  tok.rotation.x += spin.x * dt;
-  tok.rotation.y += spin.y * dt;
-  tok.rotation.z += spin.z * dt;
+  if (tok === throwables.paperPlane) {
+    tok.rotation.x = Math.PI / 2 + Math.atan2(vel.y, Math.hypot(vel.x, vel.z));
+    tok.rotation.z += spin.z * dt;
+  } else {
+    tok.rotation.x += spin.x * dt;
+    tok.rotation.y += spin.y * dt;
+    tok.rotation.z += spin.z * dt;
+  }
 
   // Kui kaugel on keha topsi keskelt (ülevalt vaadates).
   const dx = tok.position.x - cup.position.x;

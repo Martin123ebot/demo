@@ -24,6 +24,20 @@ const PLANETS = [
   { id: "sun", name: "Päike", gravity: 274.0 }
 ];
 
+// ---------- Tuul ----------
+const WIND = {
+  minSpeed: 0.8,               // väikseim tuulekiirus (m/s)
+  maxSpeed: 5.5,               // suurim tuulekiirus (m/s)
+  accelerationPerSpeed: 0.35   // kui tugevalt tuul mõjutab eset (m/s² iga m/s kohta)
+};
+
+// ---------- Esemete õhu- ja viskeomadused ----------
+const OBJECT_PHYSICS = {
+  robot: { throwSpeed: 1, windResponse: 1, lift: 0, drag: 0, launchAngleScale: 1 },
+  rock: { throwSpeed: 0.68, windResponse: 0.35, lift: 0, drag: 0, launchAngleScale: 1 },
+  paperPlane: { throwSpeed: 1, windResponse: 1.5, lift: 0.16, drag: 0.008, launchAngleScale: 0.55 }
+};
+
 
 // ---------- Sihtmärk (tops) ----------
 const CUP_R = 0.17;   // topsi raadius (m)

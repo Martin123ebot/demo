@@ -47,6 +47,16 @@ function hideAimDots() {
 }
 
 
+// Näitab tuule suuna ja kiiruse ekraaninurgas.
+function updateWindIndicator(direction, speed) {
+  $("windIndicator").style.display = speed > 0 ? "flex" : "none";
+  const arrow = $("windArrow");
+  const angle = Math.atan2(direction.x, -direction.z) * 180 / Math.PI;
+  arrow.style.transform = "rotate(" + angle + "deg)";
+  $("windSpeed").textContent = "Tuul " + speed.toFixed(1) + " m/s";
+}
+
+
 // Hiirenupp alla või sõrm ekraanile: tõmme algab.
 function down(e) {
   if (objectSelect.parentElement.contains(e.target) ||

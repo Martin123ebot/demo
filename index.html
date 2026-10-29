@@ -40,6 +40,10 @@ canvas{display:block}
 .game-actions{position:absolute;top:62px;right:16px;display:flex;gap:8px;pointer-events:auto}
 .game-actions button{padding:8px 11px;border:1px solid #CBD8D2;border-radius:8px;
   background:#fff;color:#12291F;font:500 13px "Space Grotesk",system-ui,sans-serif;cursor:pointer}
+.wind-indicator{position:absolute;top:68px;left:16px;z-index:2;display:flex;align-items:center;gap:8px;
+  padding:7px 10px;border:1px solid #CBD8D2;border-radius:8px;background:#ffffffdf;
+  color:#12291F;font-size:13px;font-weight:500;pointer-events:none}
+#windArrow{display:inline-block;color:#3478D4;font-size:22px;line-height:1;transform-origin:center}
 .gravity-picker{position:relative}
 #gravityMenu{position:absolute;top:calc(100% + 5px);right:0;z-index:3;min-width:190px;
   padding:4px;background:#fff;border:1px solid #CBD8D2;border-radius:8px;
@@ -51,6 +55,7 @@ canvas{display:block}
   .pickers{top:58px;gap:6px;max-width:calc(100vw - 24px);flex-wrap:wrap;justify-content:center}
   .object-picker,.environment-picker{gap:4px}
   .game-actions{top:200px}
+  .wind-indicator{top:244px}
 }
 .streak{color:#C4603C}
 /* Suur teade keset ekraani ("Sisse!", "Mööda"). Nähtav ainult klassiga "on" */
@@ -118,6 +123,10 @@ canvas{display:block}
       <div id="gravityMenu" hidden></div>
     </div>
     <button id="restartButton" type="button">Alusta viset uuesti</button>
+  </div>
+  <div id="windIndicator" class="wind-indicator" aria-live="polite">
+    <span id="windArrow" aria-hidden="true">↑</span>
+    <span id="windSpeed">Tuul ...</span>
   </div>
   <!-- Suur teade keset ekraani -->
   <div id="msg"></div>

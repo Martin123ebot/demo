@@ -10,6 +10,10 @@ Gravitatsiooninupu menüüst saab valida Päikesesüsteemi planeedi; valik mää
 
 Tavalisel põrandal võib topsi poole sihitud vise 35% tõenäosusega õnnestuda ka pärast põrget.
 
+Maal valitakse iga uue viske eel juhuslik tuule suund ja kiirus. Ekraani nurgas olev nool näitab, kust tuul tuleb, ja kõrval kuvatakse tuule kiirus; tuul mõjutab eseme lendu ja sihtimise punktiiri. Kuul ja klassiruumis tuult ei ole.
+
+Kivi saab sama tõmbega väiksema algkiiruse kui robot ning tuul mõjutab seda vähem. Paberlennuk saab madalama viskenurga, tuule mõju, õhutakistuse ja kiirusest sõltuva tõstejõu, nii et see liugleb nagu paberlennuk; lennuki asend järgib lennusuunda ning sihtimise punktiir arvestab sama lennumudelit.
+
 Lennu ajal pöörleb paberlennuk; lendaval esemel on maapinnavari ning viimase viske lennujoon jääb järgmise sihtimise ajaks poolläbipaistvana nähtavale.
 
 Iga tabamus annab alguses 10 punkti ning järjestikused tabamused kahekordistavad viske punktid (10, 20, 40 jne). Möödalask punktisummat ei vähenda, kuid katkestab seeria ja järgmine tabamus annab taas 10 punkti.
@@ -23,12 +27,12 @@ Mängi: https://martin123ebot.github.io/demo/
 | Fail | Mis seal on | Vastutaja |
 |---|---|---|
 | `index.html` | ekraani tekstid ja nende välimus (CSS), eseme-, koha- ja pinnavalik, gravitatsiooni- ja restartnupp | Liides |
-| `seaded.js` | **kõik numbrid**: planeetide gravitatsioon, põrandapõrge, viske tugevus, punktid | **ÜHINE** |
+| `seaded.js` | **kõik numbrid**: planeetide gravitatsioon, tuul, esemete viske- ja õhuomadused, põrandapõrge, punktid | **ÜHINE** |
 | `menuu.js` | punktid, seeria, rekord, teated ("Sisse!"), hiljem menüü | Liides |
 | `heli.js` | helid (praegu tühi) | Liides |
 | `stseen.js` | Maa/Kuu/klassiruumi taustad, valitud põrandapinna välimus, udu, kaamera, valgus ja maastik | Kunstnik |
 | `objektid.js` | tops/prügikast, alustass, viskeesemed, vari ja viske jälg | Kunstnik |
-| `fuusika.js` | lend, gravitatsioon, põrandapindade põrked, pöörlemine, topsi tabamine, topsi liikumine | Füüsik |
+| `fuusika.js` | lend, esemete õhufüüsika ja gravitatsioon, põrandapindade põrked, topsi tabamine ja liikumine | Füüsik |
 | `juhtimine.js` | hiir ja sõrm, võimsusriba, trajektoori punktiir, planeedi valik ja restartnupp | Liides |
 | `mang.js` | põhitsükkel, mis paneb kõik tööle | **ÜHINE** |
 
