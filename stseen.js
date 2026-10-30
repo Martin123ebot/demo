@@ -89,7 +89,7 @@ scene.add(sun);
 
 
 // ---------- Põrand ----------
-// 40 x 40 m suurune tasapind, mis on pööratud pikali (muidu seisaks püsti nagu sein).
+// 160 x 160 m suurune tasapind, mis on pööratud pikali (muidu seisaks püsti nagu sein).
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(160, 160),
   new THREE.MeshLambertMaterial({ color: 0x4D9B55 }));

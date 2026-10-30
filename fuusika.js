@@ -75,6 +75,15 @@ function getObjectPhysics() {
 }
 
 
+// Hinnang visatava eseme raadiusele topsi külje kokkupõrke jaoks.
+function getTokenCollisionRadius() {
+  if (tok === throwables.rock) return 0.14;
+  if (tok === throwables.ball) return 0.12;
+  if (tok === throwables.paperPlane) return 0.10;
+  return 0.12;
+}
+
+
 // Arvutab tuule, õhutakistuse ja paberlennuki tõstejõu koosmõju.
 function getAirAcceleration(velocity) {
   const physics = getObjectPhysics();
@@ -211,6 +220,7 @@ function startThrow(v) {
 // Liigutab keha ühe väikese ajasammu dt võrra edasi.
 // Kontrollib ka, kas keha tabas topsi, alustassi või maad.
 function stepFlight(dt) {
+  const previousPosition = tok.position.clone();
   const prevY = tok.position.y;   // kõrgus enne sammu (et teada, kas keha kukkus üle topsi ääre)
 
   // 1) Gravitatsioon: kiirus alla kasvab iga sammuga.
@@ -262,6 +272,57 @@ function stepFlight(dt) {
     vel.y = Math.abs(vel.y) * BOUNCE.rim;
     vel.x += (dx / hd) * BOUNCE.rimPush;
     vel.z += (dz / hd) * BOUNCE.rimPush;
+  }
+
+  // Peatab eseme topsi külje juures ka siis, kui vise on liiga madal sisse kukkuma.
+  const cupStartX = previousPosition.x - cup.position.x;
+  const cupStartZ = previousPosition.z - cup.position.z;
+  const segmentX = tok.position.x - previousPosition.x;
+  const segmentZ = tok.position.z - previousPosition.z;
+  const radius = CUP_R + getTokenCollisionRadius();
+  const segmentLengthSquared = segmentX * segmentX + segmentZ * segmentZ;
+
+  if (segmentLengthSquared > 0) {
+    const startDistance = Math.hypot(cupStartX, cupStartZ);
+    const endX = tok.position.x - cup.position.x;
+    const endZ = tok.position.z - cup.position.z;
+    const endDistance = Math.hypot(endX, endZ);
+    const startOutside = startDistance > radius;
+    const offset = cupStartX * segmentX + cupStartZ * segmentZ;
+    const discriminant = offset * offset -
+      segmentLengthSquared * (cupStartX * cupStartX + cupStartZ * cupStartZ - radius * radius);
+
+    if (discriminant >= 0) {
+      const root = Math.sqrt(discriminant);
+      const firstT = (-offset - root) / segmentLengthSquared;
+      const secondT = (-offset + root) / segmentLengthSquared;
+      const hitT = startOutside ? firstT : secondT;
+      const crossedWall = startOutside
+        ? hitT >= 0 && hitT <= 1
+        : endDistance > radius && hitT >= 0 && hitT <= 1;
+      if (crossedWall) {
+        const hitX = cupStartX + segmentX * hitT;
+        const hitZ = cupStartZ + segmentZ * hitT;
+        const hitY = previousPosition.y + (tok.position.y - previousPosition.y) * hitT;
+        const hitDistance = Math.hypot(hitX, hitZ);
+        const normalX = hitDistance > 0
+          ? hitX / hitDistance
+          : (startOutside ? cupStartX : endX) / (startOutside ? startDistance : endDistance);
+        const normalZ = hitDistance > 0
+          ? hitZ / hitDistance
+          : (startOutside ? cupStartZ : endZ) / (startOutside ? startDistance : endDistance);
+        const velocityTowardWall = vel.x * normalX + vel.z * normalZ;
+
+        if (hitY >= 0.06 && hitY < CUP_H - 0.02 &&
+            Math.abs(velocityTowardWall) > 0) {
+          const bounceSide = startOutside ? 1 : -1;
+          tok.position.x = cup.position.x + normalX * (radius + 0.002) * bounceSide;
+          tok.position.z = cup.position.z + normalZ * (radius + 0.002) * bounceSide;
+          vel.x -= (1 + BOUNCE.rim) * velocityTowardWall * normalX;
+          vel.z -= (1 + BOUNCE.rim) * velocityTowardWall * normalZ;
+        }
+      }
+    }
   }
 
   // 5) Kas keha jõudis maapinnale?

@@ -10,6 +10,8 @@ Gravitatsiooninupu menüüst saab valida Päikesesüsteemi planeedi; valik mää
 
 Tavalisel põrandal võib topsi poole sihitud vise 35% tõenäosusega õnnestuda ka pärast põrget.
 
+Topsi külge põrkab ese tagasi, mitte ei lenda sellest läbi; see kehtib ka madala viske puhul.
+
 Maal valitakse iga uue viske eel juhuslik tuule suund ja kiirus. Ekraani nurgas olev nool näitab, kuhu tuul puhub, ja kõrval kuvatakse tuule kiirus; tuul mõjutab eseme lendu ja sihtimise punktiiri. Kuul ja klassiruumis tuult ei ole.
 
 Kivi saab sama tõmbega väiksema algkiiruse kui robot ning tuul mõjutab seda vähem. Paberlennuk saab madalama viskenurga, tuule mõju, õhutakistuse ja kiirusest sõltuva tõstejõu, nii et see liugleb nagu paberlennuk; lennuki asend järgib lennusuunda ning sihtimise punktiir arvestab sama lennumudelit.
