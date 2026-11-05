@@ -59,8 +59,7 @@ function updateWindIndicator(windDirection, speed) {
 
 // Hiirenupp alla või sõrm ekraanile: tõmme algab.
 function down(e) {
-  if (objectSelect.parentElement.contains(e.target) ||
-      environmentSelect.parentElement.contains(e.target) ||
+  if (e.target.closest(".settings") ||
       surfaceSelect.parentElement.contains(e.target) ||
       e.target.closest(".game-actions")) return;
   if (state !== "aim" || dragging || !e.isPrimary) return;
@@ -127,6 +126,33 @@ stage.addEventListener("lostpointercapture", cancel);
 
 const gravityButton = $("gravityButton");
 const gravityMenu = $("gravityMenu");
+const settingsButton = $("settingsButton");
+const settingsMenu = $("settingsMenu");
+
+function closeSettingsMenu() {
+  settingsMenu.hidden = true;
+  settingsButton.setAttribute("aria-expanded", "false");
+  gravityMenu.hidden = true;
+  gravityButton.setAttribute("aria-expanded", "false");
+}
+
+settingsButton.addEventListener("click", () => {
+  const isExpanded = settingsButton.getAttribute("aria-expanded") === "true";
+  settingsMenu.hidden = isExpanded;
+  settingsButton.setAttribute("aria-expanded", String(!isExpanded));
+  if (isExpanded) {
+    gravityMenu.hidden = true;
+    gravityButton.setAttribute("aria-expanded", "false");
+  }
+});
+
+document.addEventListener("pointerdown", e => {
+  if (!e.target.closest(".settings")) closeSettingsMenu();
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeSettingsMenu();
+});
 
 PLANETS.forEach(planet => {
   const option = document.createElement("button");
