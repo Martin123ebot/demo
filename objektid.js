@@ -102,6 +102,101 @@ function updateTargetAppearance() {
 environmentSelect.addEventListener("change", updateTargetAppearance);
 updateTargetAppearance();
 
+const targetFlashMaterials = [];
+[cup, trashBin].forEach(target => target.traverse(part => {
+  if (part.isMesh && part.material && part.material.emissive) {
+    targetFlashMaterials.push({
+      material: part.material,
+      emissive: part.material.emissive.clone(),
+      intensity: part.material.emissiveIntensity
+    });
+  }
+}));
+const targetFlashDuration = 0.42;
+const targetFlashColor = new THREE.Color(0xFFF1A8);
+let targetFlashTime = 0;
+const visualEffects = [];
+const dustParticleGeometry = new THREE.SphereGeometry(1, 8, 6);
+
+function flashTarget() {
+  targetFlashTime = targetFlashDuration;
+}
+
+function addCollisionFlash(position) {
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.09, 12, 8),
+    new THREE.MeshBasicMaterial({ color: 0xFFE58A, transparent: true, depthWrite: false }));
+  mesh.position.copy(position);
+  scene.add(mesh);
+  visualEffects.push({ mesh, velocity: new THREE.Vector3(), duration: 0.2, age: 0, type: "flash" });
+}
+
+function addMoonDust(position) {
+  if (environmentSelect.value !== "moon") return;
+
+  for (let i = 0; i < 12; i++) {
+    const material = new THREE.MeshBasicMaterial({
+      color: i % 2 ? 0xA7A9A8 : 0xD0D0CC,
+      transparent: true,
+      opacity: 0.55,
+      depthWrite: false
+    });
+    const mesh = new THREE.Mesh(dustParticleGeometry, material);
+    mesh.scale.setScalar(0.035 + Math.random() * 0.045);
+    mesh.position.copy(position);
+    mesh.position.x += (Math.random() - 0.5) * 0.16;
+    mesh.position.y += Math.random() * 0.035;
+    mesh.position.z += (Math.random() - 0.5) * 0.16;
+    scene.add(mesh);
+    visualEffects.push({
+      mesh,
+      velocity: new THREE.Vector3(
+        (Math.random() - 0.5) * 0.65,
+        0.25 + Math.random() * 0.55,
+        (Math.random() - 0.5) * 0.65),
+      duration: 0.65 + Math.random() * 0.35,
+      age: 0,
+      type: "dust"
+    });
+  }
+}
+
+function updateVisualEffects(dt) {
+  targetFlashTime = Math.max(0, targetFlashTime - dt);
+  const flashProgress = 1 - targetFlashTime / targetFlashDuration;
+  const flashStrength = targetFlashTime > 0
+    ? Math.pow(Math.max(0, Math.sin(flashProgress * Math.PI * 6)), 2)
+    : 0;
+  targetFlashMaterials.forEach(({ material, emissive, intensity }) => {
+    material.emissive.copy(emissive).lerp(targetFlashColor, flashStrength);
+    material.emissiveIntensity = intensity + flashStrength * 1.8;
+  });
+
+  for (let i = visualEffects.length - 1; i >= 0; i--) {
+    const effect = visualEffects[i];
+    effect.age += dt;
+    const progress = Math.min(1, effect.age / effect.duration);
+    effect.mesh.position.addScaledVector(effect.velocity, dt);
+
+    if (effect.type === "flash") {
+      effect.mesh.scale.setScalar(0.35 + progress * 2.4);
+      effect.mesh.material.opacity = 1 - progress;
+    } else {
+      effect.velocity.y -= dt * 0.18;
+      effect.velocity.multiplyScalar(Math.max(0, 1 - dt * 1.3));
+      effect.mesh.scale.multiplyScalar(1 + dt * 1.5);
+      effect.mesh.material.opacity = 0.55 * (1 - progress);
+    }
+
+    if (progress >= 1) {
+      scene.remove(effect.mesh);
+      effect.mesh.material.dispose();
+      if (effect.type === "flash") effect.mesh.geometry.dispose();
+      visualEffects.splice(i, 1);
+    }
+  }
+}
+
 
 // ---------- Alustass ----------
 // Sinine ketas, mis ilmub vahel topsi peale ja põrgatab keha tagasi.

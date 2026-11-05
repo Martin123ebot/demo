@@ -251,6 +251,8 @@ function stepFlight(dt) {
 
     // 4a) Alustass on peal -> keha põrkab tagasi.
     if (coasterOn && hd < CUP_R * 1.5) {
+      flashTarget();
+      addCollisionFlash(tok.position);
       vel.y = Math.abs(vel.y) * COASTER.bounce;
       vel.x += dx * COASTER.push;
       vel.z += dz * COASTER.push;
@@ -261,6 +263,7 @@ function stepFlight(dt) {
 
     // 4b) Keha on topsi suu kohal -> SISSE!
     if (hd < CUP_R * 0.94) {
+      flashTarget();
       state = "land"; settle = 0;
       tok.position.set(cup.position.x, CUP_H * 0.42, cup.position.z); // pane keha topsi sisse
       vel.set(0, 0, 0);
@@ -269,6 +272,8 @@ function stepFlight(dt) {
     }
 
     // 4c) Keha tabas topsi äärt -> põrkab üles ja küljele.
+    flashTarget();
+    addCollisionFlash(tok.position);
     vel.y = Math.abs(vel.y) * BOUNCE.rim;
     vel.x += (dx / hd) * BOUNCE.rimPush;
     vel.z += (dz / hd) * BOUNCE.rimPush;
@@ -320,6 +325,11 @@ function stepFlight(dt) {
           tok.position.z = cup.position.z + normalZ * (radius + 0.002) * bounceSide;
           vel.x -= (1 + BOUNCE.rim) * velocityTowardWall * normalX;
           vel.z -= (1 + BOUNCE.rim) * velocityTowardWall * normalZ;
+          flashTarget();
+          addCollisionFlash(new THREE.Vector3(
+            cup.position.x + hitX,
+            hitY,
+            cup.position.z + hitZ));
         }
       }
     }
@@ -328,6 +338,10 @@ function stepFlight(dt) {
   // 5) Kas keha jõudis maapinnale?
   if (tok.position.y <= 0.06) {
     tok.position.y = 0.06; // ära lase maa sisse vajuda
+    if (prevY > 0.06) {
+      addCollisionFlash(tok.position);
+      addMoonDust(tok.position);
+    }
 
     if (surfaceSelect.value === "mud" || surfaceSelect.value === "sand") {
       vel.set(0, 0, 0);

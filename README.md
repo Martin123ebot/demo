@@ -18,6 +18,8 @@ Kivi saab sama tõmbega väiksema algkiiruse kui robot ning tuul mõjutab seda v
 
 Lennu ajal pöörleb paberlennuk; lendaval esemel on maapinnavari ning viimase viske lennujoon jääb järgmise sihtimise ajaks poolläbipaistvana nähtavale.
 
+Sihtmärk vilgub tabamuse korral ja põrgetel sähvatab; Kuu pinnale maandudes tõuseb tolmupilv.
+
 Iga tabamus annab alguses 10 punkti ning järjestikused tabamused kahekordistavad viske punktid (10, 20, 40 jne). Möödalask punktisummat ei vähenda, kuid katkestab seeria ja järgmine tabamus annab taas 10 punkti.
 
 Mängi: https://martin123ebot.github.io/demo/
@@ -33,8 +35,8 @@ Mängi: https://martin123ebot.github.io/demo/
 | `menuu.js` | punktid, seeria, rekord, teated ("Sisse!"), hiljem menüü | Liides |
 | `heli.js` | helid (praegu tühi) | Liides |
 | `stseen.js` | Maa/Kuu/klassiruumi taustad, valitud põrandapinna välimus, udu, kaamera, valgus ja maastik | Kunstnik |
-| `objektid.js` | tops/prügikast, alustass, viskeesemed, vari ja viske jälg | Kunstnik |
-| `fuusika.js` | lend, esemete õhufüüsika ja gravitatsioon, põrandapindade põrked, topsi tabamine ja liikumine | Füüsik |
+| `objektid.js` | tops/prügikast, alustass, viskeesemed, vari, viske jälg ja efektid | Kunstnik |
+| `fuusika.js` | lend, õhufüüsika, põrked, tabamused ja visuaalsete efektide käivitamine | Füüsik |
 | `juhtimine.js` | hiir ja sõrm, võimsusriba, trajektoori punktiir, planeedi valik ja restartnupp | Liides |
 | `mang.js` | põhitsükkel, mis paneb kõik tööle | **ÜHINE** |
 

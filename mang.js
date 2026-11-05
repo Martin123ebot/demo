@@ -35,6 +35,7 @@ function loop(now) {
 
   objectSelect.disabled = state !== "aim";
   surfaceSelect.disabled = state !== "aim";
+  updateVisualEffects(dt);
   updateTokenShadow();
   renderer.render(scene, camera); // stseen.js: joonista pilt
   requestAnimationFrame(loop);    // palu järgmine kaader
