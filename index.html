@@ -36,9 +36,16 @@ canvas{display:block}
 .surface-picker select{max-width:34vw;padding:7px 9px;border:1px solid #CBD8D2;
   border-radius:8px;background:#fff;color:#12291F;font:inherit}
 .surface-picker select:disabled{opacity:.65}
-.game-actions{position:absolute;top:62px;right:16px;display:flex;gap:8px;pointer-events:auto}
+.game-actions{position:absolute;top:62px;right:16px;display:flex;gap:8px;pointer-events:auto;z-index:4}
 .game-actions button{padding:8px 11px;border:1px solid #CBD8D2;border-radius:8px;
   background:#fff;color:#12291F;font:500 13px "Space Grotesk",system-ui,sans-serif;cursor:pointer}
+.help{position:relative}
+.help-menu{position:absolute;top:calc(100% + 8px);right:0;width:min(320px,calc(100vw - 24px));
+  padding:14px;background:#fff;border:1px solid #CBD8D2;border-radius:10px;
+  box-shadow:0 6px 18px #12291f2b;color:#12291F}
+.help-menu[hidden]{display:none}
+.help-menu strong{font-size:14px}
+.help-menu p{margin:6px 0 0;color:#4A6357;font-size:14px;line-height:1.5}
 .settings{position:absolute;top:10px;right:16px;z-index:4;pointer-events:auto}
 #settingsButton{width:42px;height:42px;padding:0;border:1px solid #CBD8D2;border-radius:10px;
   background:#fff;color:#12291F;font:26px/1 system-ui,sans-serif;cursor:pointer}
@@ -74,9 +81,6 @@ canvas{display:block}
 #msg{position:absolute;left:0;right:0;top:36%;text-align:center;
   font-size:34px;font-weight:700;pointer-events:none;opacity:0;transition:opacity .18s}
 #msg.on{opacity:1}
-/* Vihje ekraani all */
-#hint{position:absolute;left:0;right:0;bottom:26px;text-align:center;
-  font-size:15px;color:#4A6357;pointer-events:none}
 /* Võimsusriba ekraani allservas. Nähtav ainult tõmbamise ajal */
 #power{position:absolute;left:16px;right:16px;bottom:12px;height:6px;
   background:#CBD8D2;border-radius:3px;overflow:hidden;opacity:0;transition:opacity .15s}
