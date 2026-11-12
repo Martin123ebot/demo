@@ -32,7 +32,7 @@ Mängi: https://martin123ebot.github.io/demo/
 |---|---|---|
 | `index.html` | ekraani tekstid ja nende välimus (CSS), eseme-, koha- ja pinnavalik, gravitatsiooni- ja restartnupp | Liides |
 | `seaded.js` | **kõik numbrid**: planeetide gravitatsioon, tuul, esemete viske- ja õhuomadused, põrandapõrge, punktid | **ÜHINE** |
-| `menuu.js` | punktid, seeria, rekord, teated ("Sisse!"), hiljem menüü | Liides |
+| `menuu.js` | punktid, seeria, rekord, teated ("Sisse!"), juhendivihje | Liides |
 | `heli.js` | helid (praegu tühi) | Liides |
 | `stseen.js` | Maa/Kuu/klassiruumi taustad, valitud põrandapinna välimus, udu, kaamera, valgus ja maastik | Kunstnik |
 | `objektid.js` | tops/prügikast, alustass, viskeesemed, vari, viske jälg ja efektid | Kunstnik |
