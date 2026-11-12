@@ -145,6 +145,14 @@ canvas{display:block}
   </div>
   <div class="game-actions">
     <button id="restartButton" type="button">Alusta viset uuesti</button>
+    <div class="help">
+      <button id="helpButton" type="button" aria-label="Ava mängujuhend" aria-expanded="false"
+        aria-controls="helpMenu" title="Abi">Abi</button>
+      <div id="helpMenu" class="help-menu" hidden>
+        <strong>Kuidas mängida?</strong>
+        <p id="hint">Hoia vasakut hiirenuppu või sõrme all, tõmba üles ja lase lahti</p>
+      </div>
+    </div>
   </div>
   <div id="windIndicator" class="wind-indicator" aria-live="polite">
     <span id="windArrow" aria-hidden="true">↑</span>
@@ -152,8 +160,6 @@ canvas{display:block}
   </div>
   <!-- Suur teade keset ekraani -->
   <div id="msg"></div>
-  <!-- Vihje ekraani all -->
-  <div id="hint">Hoia vasakut hiirenuppu või sõrme all, tõmba üles ja lase lahti</div>
   <!-- Võimsusriba -->
   <div id="power"><i id="powerFill"></i></div>
 </div>
