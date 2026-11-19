@@ -23,6 +23,8 @@ let spin = new THREE.Vector3(); // keha pöörlemiskiirus ümber x, y, z telje
 let settle = 0;                 // mitu sekundit on vise juba lõppenud olnud
 let selectedPlanet = "earth";
 let bounceIntoCupAttempted = false;
+let restingTarget = null;
+const restingOffset = new THREE.Vector3();
 let windFrom = new THREE.Vector3(0, 0, -1);
 let windSpeed = 0;
 const windVelocity = new THREE.Vector3();
@@ -123,6 +125,7 @@ function resetToken() {
   if (tok === throwables.paperPlane) tok.rotation.set(Math.PI / 2, 0, 0);
   else tok.rotation.set(0, 0, 0);
   vel.set(0, 0, 0);
+  restingTarget = null;
   bounceIntoCupAttempted = false;
   resetWind();
   state = "aim";
@@ -212,6 +215,7 @@ function calcAimTrajectory(dx, dy, pointCount) {
 // Alustab viset: annab kehale algkiiruse ja pöörlemise.
 function startThrow(v) {
   vel.copy(v);
+  restingTarget = null;
   bounceIntoCupAttempted = false;
   clearThrowTrail();
   recordThrowTrailPoint(tok.position);
@@ -228,6 +232,11 @@ function startThrow(v) {
 // Liigutab keha ühe väikese ajasammu dt võrra edasi.
 // Kontrollib ka, kas keha tabas topsi, alustassi või maad.
 function stepFlight(dt) {
+  if (restingTarget) {
+    tok.position.copy(restingTarget.position).add(restingOffset);
+    return;
+  }
+
   const previousPosition = tok.position.clone();
   const prevY = tok.position.y;   // kõrgus enne sammu (et teada, kas keha kukkus üle topsi ääre)
 
@@ -278,6 +287,8 @@ function stepFlight(dt) {
       flashTarget();
       state = "land"; settle = 0;
       tok.position.set(target.position.x, targetDimensions.height * 0.42, target.position.z);
+      restingTarget = target;
+      restingOffset.copy(tok.position).sub(target.position);
       vel.set(0, 0, 0);
       tally(true, false); // menuu.js: "Sisse!"
       return;
