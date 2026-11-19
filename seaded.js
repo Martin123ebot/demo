@@ -83,7 +83,8 @@ const BOUNCE = {
 
 // ---------- Põranda pinnad ----------
 const SURFACE = {
-  rubberBounce: 0.92
+  rubberBounce: 0.92,
+  moonMaxDistance: 20
 };
 
 
