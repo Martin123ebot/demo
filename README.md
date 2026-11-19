@@ -2,7 +2,7 @@
 
 Mängija valib eseme, hoiab hiire vasakut nuppu või sõrme all, tõmbab üles ja viskab lahtilaskmisel eseme topsi. Valida saab roboti, palli, kivi, paberlennuki, pastaka, pinali, pliiatsi või padja. Mäng on tehtud three.js 3D-teegiga (versioon **r128**).
 
-Ülaosas saab valida keskkonna: Maal on sinine üleminekuga taevas, kauguse udu, muru, puud ja pilved; Kuul on must tähistaevas, Maa, hall pind ja kraatrid; klassiruumis on tahvel, aknad, uks, kell ja koolilauad. Klassiruumis muutub sihtmärk prügiämbriks. Keskkonnad joonistatakse kujunditest, eraldi pildifaile pole vaja.
+Ülaosas saab valida keskkonna: Maal on sinine üleminekuga taevas, kauguse udu, muru, puud ja pilved; Kuul on must tähistaevas, Maa, hall pind ja kraatrid; klassiruumis on tahvel, aknad, uks, kell ja koolilauad. Klassiruumis muutub sihtmärk suure avaga prügiämbriks, kuhu mahub ka padi. Keskkonnad joonistatakse kujunditest, eraldi pildifaile pole vaja.
 
 Gravitatsiooninupu menüüst saab valida Päikesesüsteemi planeedi; valik määrab viske gravitatsiooni tugevuse. „Alusta viset uuesti” paneb eseme algasendisse, kuid jätab punktid ja seeria alles.
 

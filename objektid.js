@@ -52,23 +52,24 @@ scene.add(cup);
 // Prügiämber kasutab mängus sama sihtmärgi asukohta ja tabamisala mis tops.
 const trashBin = new THREE.Group();
 const binWall = new THREE.Mesh(
-  new THREE.CylinderGeometry(CUP_R, CUP_R * 0.82, CUP_H, 24, 1, true),
+  new THREE.CylinderGeometry(BIN_R, BIN_R * 0.82, BIN_H, 24, 1, true),
   new THREE.MeshLambertMaterial({ color: 0x48565B, side: THREE.DoubleSide }));
-binWall.position.y = CUP_H / 2;
+binWall.position.y = BIN_H / 2;
 binWall.castShadow = true;
 const binBottom = new THREE.Mesh(
-  new THREE.CylinderGeometry(CUP_R * 0.82, CUP_R * 0.82, 0.025, 24),
+  new THREE.CylinderGeometry(BIN_R * 0.82, BIN_R * 0.82, 0.025, 24),
   new THREE.MeshLambertMaterial({ color: 0x283237 }));
 binBottom.position.y = 0.025;
 const binOpening = new THREE.Mesh(
-  new THREE.CylinderGeometry(CUP_R * 0.78, CUP_R * 0.78, 0.012, 24),
+  new THREE.TorusGeometry(BIN_INNER_R, 0.012, 8, 24),
   new THREE.MeshLambertMaterial({ color: 0x20272A }));
-binOpening.position.y = CUP_H - 0.025;
+binOpening.rotation.x = Math.PI / 2;
+binOpening.position.y = BIN_H;
 const binRim = new THREE.Mesh(
-  new THREE.TorusGeometry(CUP_R * 0.94, 0.018, 8, 24),
+  new THREE.TorusGeometry(BIN_R * 0.94, 0.018, 8, 24),
   new THREE.MeshLambertMaterial({ color: 0x273236 }));
 binRim.rotation.x = Math.PI / 2;
-binRim.position.y = CUP_H;
+binRim.position.y = BIN_H;
 
 const labelCanvas = document.createElement("canvas");
 labelCanvas.width = 256;
@@ -84,7 +85,7 @@ labelContext.fillText("PRÜGI", 128, 49);
 const binLabel = new THREE.Mesh(
   new THREE.PlaneGeometry(0.22, 0.082),
   new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(labelCanvas) }));
-binLabel.position.set(0, CUP_H * 0.55, CUP_R * 0.91);
+binLabel.position.set(0, BIN_H * 0.55, BIN_R * 0.91);
 trashBin.add(binWall, binBottom, binOpening, binRim, binLabel);
 trashBin.position.set(0, 0, CUP_Z);
 trashBin.visible = false;
@@ -97,6 +98,10 @@ function updateTargetAppearance() {
   const isClassroom = environmentSelect.value === "classroom";
   cup.visible = !isClassroom;
   trashBin.visible = isClassroom;
+}
+
+function getTarget() {
+  return environmentSelect.value === "classroom" ? trashBin : cup;
 }
 
 environmentSelect.addEventListener("change", updateTargetAppearance);
