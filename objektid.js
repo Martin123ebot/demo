@@ -276,35 +276,110 @@ function paperPlane() {
 
 function pencilCase() {
   const g = new THREE.Group();
+  const caseShape = new THREE.Shape();
+  caseShape.moveTo(-0.155, -0.075);
+  caseShape.quadraticCurveTo(-0.155, -0.065, -0.155, 0.075);
+  caseShape.quadraticCurveTo(-0.155, 0.075, -0.12, 0.075);
+  caseShape.lineTo(0.12, 0.075);
+  caseShape.quadraticCurveTo(0.155, 0.075, 0.155, 0.04);
+  caseShape.lineTo(0.155, -0.04);
+  caseShape.quadraticCurveTo(0.155, -0.075, 0.12, -0.075);
+  caseShape.closePath();
+
+  const caseGeometry = new THREE.ExtrudeGeometry(caseShape, {
+    depth: 0.13,
+    bevelEnabled: true,
+    bevelSegments: 3,
+    bevelSize: 0.018,
+    bevelThickness: 0.012,
+    curveSegments: 8
+  });
+  caseGeometry.translate(0, 0, -0.065);
   const body = new THREE.Mesh(
-    new THREE.BoxGeometry(0.31, 0.13, 0.13),
+    caseGeometry,
     new THREE.MeshLambertMaterial({ color: 0xD97757 }));
   body.castShadow = true;
   g.add(body);
 
+  // Pinali selge lukuserv ja tasku võimaldab seda viskel paremini eristada.
   const zipper = new THREE.Mesh(
-    new THREE.BoxGeometry(0.25, 0.008, 0.012),
+    new THREE.BoxGeometry(0.27, 0.012, 0.008),
     new THREE.MeshLambertMaterial({ color: 0xE8C86A }));
-  zipper.position.y = 0.069;
+  zipper.position.set(0, 0.087, 0.015);
   g.add(zipper);
+
+  const zipperPull = new THREE.Mesh(
+    new THREE.TorusGeometry(0.018, 0.006, 8, 16),
+    new THREE.MeshLambertMaterial({ color: 0x8A6D34 }));
+  zipperPull.position.set(0.12, 0.10, 0.015);
+  zipperPull.scale.y = 1.35;
+  g.add(zipperPull);
+
+  const label = new THREE.Mesh(
+    new THREE.BoxGeometry(0.105, 0.026, 0.008),
+    new THREE.MeshLambertMaterial({ color: 0xF2D2A2 }));
+  label.position.set(-0.055, 0.018, 0.077);
+  g.add(label);
+
+  const labelLine = new THREE.Mesh(
+    new THREE.BoxGeometry(0.068, 0.006, 0.009),
+    new THREE.MeshLambertMaterial({ color: 0xA95C43 }));
+  labelLine.position.set(-0.055, 0.018, 0.082);
+  g.add(labelLine);
   return g;
 }
 
 function pen() {
   const g = new THREE.Group();
   const barrel = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.022, 0.022, 0.29, 12),
+    new THREE.CylinderGeometry(0.024, 0.022, 0.23, 16),
     new THREE.MeshLambertMaterial({ color: 0x347A66 }));
   barrel.rotation.z = Math.PI / 2;
   barrel.castShadow = true;
   g.add(barrel);
 
+  // Pastaka otsal on metallist tipp, lindid ja klamber ning klamber annab kujule rohkem detaile.
+  const cap = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.026, 0.024, 0.075, 16),
+    new THREE.MeshLambertMaterial({ color: 0x24594A }));
+  cap.rotation.z = Math.PI / 2;
+  cap.position.x = -0.152;
+  cap.castShadow = true;
+  g.add(cap);
+
+  const grip = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.023, 0.017, 0.065, 16),
+    new THREE.MeshLambertMaterial({ color: 0x173F35 }));
+  grip.rotation.z = Math.PI / 2;
+  grip.position.x = 0.145;
+  g.add(grip);
+
+  const gripBand = new THREE.Mesh(
+    new THREE.TorusGeometry(0.023, 0.004, 8, 16),
+    new THREE.MeshLambertMaterial({ color: 0xE8C86A }));
+  gripBand.rotation.y = Math.PI / 2;
+  gripBand.position.x = 0.118;
+  g.add(gripBand);
+
   const tip = new THREE.Mesh(
-    new THREE.ConeGeometry(0.022, 0.055, 12),
-    new THREE.MeshLambertMaterial({ color: 0xB5B9B5 }));
+    new THREE.ConeGeometry(0.017, 0.055, 12),
+    new THREE.MeshLambertMaterial({ color: 0xBFC5C3 }));
   tip.rotation.z = -Math.PI / 2;
-  tip.position.x = 0.17;
+  tip.position.x = 0.207;
   g.add(tip);
+
+  const ink = new THREE.Mesh(
+    new THREE.SphereGeometry(0.006, 8, 6),
+    new THREE.MeshLambertMaterial({ color: 0x1B1F22 }));
+  ink.position.x = 0.237;
+  g.add(ink);
+
+  const clip = new THREE.Mesh(
+    new THREE.BoxGeometry(0.075, 0.012, 0.008),
+    new THREE.MeshLambertMaterial({ color: 0xE8C86A }));
+  clip.position.set(-0.07, 0.032, 0);
+  clip.rotation.z = -0.12;
+  g.add(clip);
   return g;
 }
 
