@@ -90,9 +90,34 @@ scene.add(sun);
 
 // ---------- Põrand ----------
 // 160 x 160 m suurune tasapind, mis on pööratud pikali (muidu seisaks püsti nagu sein).
+// Canvasel tehtud muru-muster hoiab kogu Maa-põranda näha rohelise rohuna.
+const grassCanvas = document.createElement("canvas");
+grassCanvas.width = 128;
+grassCanvas.height = 128;
+const grassContext = grassCanvas.getContext("2d");
+grassContext.fillStyle = "#4D9B55";
+grassContext.fillRect(0, 0, 128, 128);
+
+for (let i = 0; i < 260; i++) {
+  const x = (i * 47 + (i % 7) * 13) % 128;
+  const y = (i * 71 + (i % 5) * 17) % 128;
+  const length = 3 + (i % 5);
+  grassContext.strokeStyle = i % 3 === 0 ? "#397F42" : (i % 3 === 1 ? "#62A95F" : "#558F4B");
+  grassContext.lineWidth = 1;
+  grassContext.beginPath();
+  grassContext.moveTo(x, y);
+  grassContext.lineTo(x + ((i % 9) - 4) * 0.25, y - length);
+  grassContext.stroke();
+}
+
+const grassTexture = new THREE.CanvasTexture(grassCanvas);
+grassTexture.wrapS = THREE.RepeatWrapping;
+grassTexture.wrapT = THREE.RepeatWrapping;
+grassTexture.repeat.set(20, 20);
+
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(160, 160),
-  new THREE.MeshLambertMaterial({ color: 0x4D9B55 }));
+  new THREE.MeshLambertMaterial({ color: 0xFFFFFF, map: grassTexture }));
 floor.rotation.x = -Math.PI / 2;   // pööra 90° pikali
 floor.receiveShadow = true;        // põrandale tekivad varjud
 scene.add(floor);
@@ -115,8 +140,17 @@ function updateFloorAppearance() {
     mud: 0x59412C,
     sand: 0xD6BF83
   };
-  const color = surfaceColors[surfaceSelect.value] || normalColors[environmentSelect.value] || normalColors.earth;
-  floor.material.color.set(color);
+  const onEarthNormalSurface =
+    surfaceSelect.value === "normal" && environmentSelect.value === "earth";
+  if (onEarthNormalSurface) {
+    floor.material.map = grassTexture;
+    floor.material.color.set(0xFFFFFF);
+  } else {
+    floor.material.map = null;
+    const color = surfaceColors[surfaceSelect.value] || normalColors[environmentSelect.value] || normalColors.earth;
+    floor.material.color.set(color);
+  }
+  floor.material.needsUpdate = true;
   grid.visible = surfaceSelect.value === "normal" && environmentSelect.value === "earth";
 }
 
@@ -126,22 +160,129 @@ surfaceSelect.addEventListener("change", updateFloorAppearance);
 // ---------- Maa maastik ----------
 const earthLandscape = new THREE.Group();
 scene.add(earthLandscape);
+const movingClouds = [];
 
-function addTree(x, z, scale) {
+function resetCloudPositions() {
+  movingClouds.forEach(({ cloud, start }) => cloud.position.copy(start));
+}
+
+function updateClouds(dt) {
+  if (!earthLandscape.visible) return;
+
+  movingClouds.forEach(({ cloud }) => {
+    cloud.position.x += windVelocity.x * dt;
+    cloud.position.z += windVelocity.z * dt;
+
+    if (cloud.position.x > 20) cloud.position.x -= 40;
+    else if (cloud.position.x < -20) cloud.position.x += 40;
+    if (cloud.position.z > -8) cloud.position.z -= 40;
+    else if (cloud.position.z < -48) cloud.position.z += 40;
+  });
+}
+
+let lastCloudUpdate = performance.now();
+function animateClouds(now) {
+  const dt = Math.min(0.05, (now - lastCloudUpdate) / 1000);
+  lastCloudUpdate = now;
+  updateClouds(dt);
+  requestAnimationFrame(animateClouds);
+}
+requestAnimationFrame(animateClouds);
+
+// Lisab maastikule ühe neljast erineva kujuga puu.
+function addTree(x, z, scale, style) {
   const tree = new THREE.Group();
+  const trunkColors = [0x6B4A32, 0x7A5638, 0x5D4938];
+  const trunkMaterial = new THREE.MeshLambertMaterial({
+    color: trunkColors[Math.abs(Math.round(x + z)) % trunkColors.length]
+  });
+  const foliageColors = [0x245F36, 0x347D43, 0x2F6F3B, 0x487E3C];
+  const foliageMaterial = new THREE.MeshLambertMaterial({
+    color: foliageColors[(Math.abs(Math.round(x * 10)) + style) % foliageColors.length]
+  });
+
   const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.12, 0.17, 1.2, 7),
-    new THREE.MeshLambertMaterial({ color: 0x755139 }));
-  trunk.position.y = 0.6;
+    new THREE.CylinderGeometry(style === 3 ? 0.08 : 0.13, style === 3 ? 0.12 : 0.22, 1.8, 9),
+    trunkMaterial);
+  trunk.position.y = 0.9;
+  trunk.rotation.z = (style % 3 - 1) * 0.025;
   tree.add(trunk);
 
-  const foliage = new THREE.Mesh(
-    new THREE.ConeGeometry(0.8, 2.3, 8),
-    new THREE.MeshLambertMaterial({ color: 0x267344 }));
-  foliage.position.y = 2.15;
-  tree.add(foliage);
+  if (style === 0) {
+    // Kõrge okaspuu: ebatasased kihilised võrad.
+    [1.05, 0.82, 0.58].forEach((radius, index) => {
+      const foliage = new THREE.Mesh(
+        new THREE.ConeGeometry(radius, 1.35, 8),
+        foliageMaterial);
+      foliage.position.set(index === 1 ? 0.08 : 0, 1.55 + index * 0.72, index * 0.05);
+      foliage.rotation.y = index * 0.42;
+      tree.add(foliage);
+    });
+  } else if (style === 1) {
+    // Laia krooniga tamm: oksad ja mitme tükiga rohke võra.
+    [-1, 1].forEach(side => {
+      const branch = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.035, 0.07, 1.15, 7),
+        trunkMaterial);
+      branch.position.set(side * 0.38, 1.72, 0);
+      branch.rotation.z = side * 0.72;
+      tree.add(branch);
+    });
+    [[-0.55, 2.18, 0, 0.67], [0.52, 2.12, 0.05, 0.72],
+      [-0.08, 2.58, -0.08, 0.82], [0.18, 1.78, 0.38, 0.62],
+      [-0.12, 2.05, -0.42, 0.58]]
+      .forEach(([cx, cy, cz, radius], index) => {
+        const foliage = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(radius, 1),
+          index % 2 === 0 ? foliageMaterial : new THREE.MeshLambertMaterial({
+            color: foliageColors[(style + index) % foliageColors.length]
+          }));
+        foliage.position.set(cx, cy, cz);
+        foliage.scale.set(1.05, 0.82, 0.92);
+        tree.add(foliage);
+      });
+  } else if (style === 2) {
+    // Ümar pärna või puju kujuga lehtpuu, mille võra on kihiline.
+    [[-0.48, 1.95, 0.05, 0.58], [0.42, 2.05, -0.02, 0.64],
+      [0, 2.48, 0.12, 0.75], [-0.12, 1.55, 0.22, 0.52]]
+      .forEach(([cx, cy, cz, radius], index) => {
+        const foliage = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(radius, 1),
+          index === 2 ? foliageMaterial : new THREE.MeshLambertMaterial({
+            color: foliageColors[(style + index) % foliageColors.length]
+          }));
+        foliage.position.set(cx, cy, cz);
+        foliage.scale.set(1.15, 0.95, 1);
+        tree.add(foliage);
+      });
+  } else {
+    // Kaski meenutav kitsas puu, valge hallikas tüvi ja väikesed võrad.
+    trunkMaterial.color.set(0xA9A18B);
+    [[-0.32, 2.05, 0, 0.48], [0.38, 2.28, 0.08, 0.52],
+      [0, 2.72, -0.12, 0.58], [-0.18, 1.58, 0.15, 0.42]]
+      .forEach(([cx, cy, cz, radius], index) => {
+        const foliage = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(radius, 1),
+          index % 2 === 0 ? foliageMaterial : new THREE.MeshLambertMaterial({
+            color: foliageColors[(style + index) % foliageColors.length]
+          }));
+        foliage.position.set(cx, cy, cz);
+        foliage.scale.set(0.9, 1.05, 0.85);
+        tree.add(foliage);
+      });
+    [-1, 1].forEach(side => {
+      const branch = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.025, 0.055, 0.95, 6),
+        trunkMaterial);
+      branch.position.set(side * 0.28, 1.68, 0);
+      branch.rotation.z = side * 0.92;
+      tree.add(branch);
+    });
+  }
+
   tree.position.set(x, 0, z);
   tree.scale.setScalar(scale);
+  tree.rotation.y = (Math.abs(Math.round(x * 17 + z * 3)) % 8) * 0.12;
   tree.traverse(part => {
     if (part.isMesh) {
       part.castShadow = true;
@@ -151,11 +292,56 @@ function addTree(x, z, scale) {
   earthLandscape.add(tree);
 }
 
-[-1, 1].forEach(side => {
-  addTree(side * 5.5, -13, 1.2);
-  addTree(side * 8.5, -19, 1.65);
-  addTree(side * 4.5, -24, 1.9);
-});
+[
+  [-5.5, -13, 1.2, 0],
+  [5.5, -13, 1.15, 1],
+  [-8.5, -19, 1.65, 2],
+  [8.5, -19, 1.55, 3],
+  [-4.5, -24, 1.9, 1],
+  [4.5, -24, 1.75, 0],
+  [-10.5, -29, 1.45, 3],
+  [10.5, -32, 1.6, 2],
+  [-7, -36, 1.25, 0],
+  [7, -40, 1.85, 1]
+].forEach(([x, z, scale, style]) => addTree(x, z, scale, style));
+
+// Lisab maapinnale väikesed mitme kõrrega murukobarad.
+function addGrassPatch(x, z, scale) {
+  const grass = new THREE.Group();
+  const grassMaterials = [
+    new THREE.MeshLambertMaterial({ color: 0x4E934E, side: THREE.DoubleSide }),
+    new THREE.MeshLambertMaterial({ color: 0x669B50, side: THREE.DoubleSide }),
+    new THREE.MeshLambertMaterial({ color: 0x3D7F43, side: THREE.DoubleSide })
+  ];
+
+  for (let bladeIndex = 0; bladeIndex < 5; bladeIndex++) {
+    const blade = new THREE.Mesh(
+      new THREE.ConeGeometry(0.035, 0.32 + (bladeIndex % 3) * 0.055, 3),
+      grassMaterials[bladeIndex % grassMaterials.length]);
+    const angle = bladeIndex * 1.31 + (x + z) * 0.07;
+    blade.position.set(
+      Math.cos(angle) * (0.05 + (bladeIndex % 2) * 0.04),
+      0.16,
+      Math.sin(angle) * (0.05 + (bladeIndex % 2) * 0.04));
+    blade.rotation.z = Math.sin(angle) * 0.16;
+    blade.rotation.x = Math.cos(angle) * 0.12;
+    grass.add(blade);
+  }
+
+  grass.position.set(x, 0, z);
+  grass.scale.setScalar(scale);
+  grass.rotation.y = (Math.abs(Math.round(x * 19 + z * 11)) % 12) * 0.45;
+  earthLandscape.add(grass);
+}
+
+for (let row = 0; row < 13; row++) {
+  for (let column = 0; column < 20; column++) {
+    const x = -18 + column * 1.9 + ((row % 2) * 0.65);
+    const z = -42 + row * 5.2;
+    const patchScale = 0.75 + ((row * 7 + column * 11) % 5) * 0.12;
+    addGrassPatch(x, z, patchScale);
+  }
+}
 
 function addCloud(x, y, z, scale) {
   const cloud = new THREE.Group();
@@ -169,11 +355,18 @@ function addCloud(x, y, z, scale) {
   cloud.position.set(x, y, z);
   cloud.scale.setScalar(scale);
   earthLandscape.add(cloud);
+  movingClouds.push({ cloud, start: cloud.position.clone() });
 }
 
 addCloud(-7, 5.5, -19, 1.3);
 addCloud(7.5, 6.5, -27, 1.7);
 addCloud(-1.5, 7, -36, 1.9);
+addCloud(1.5, 5.8, -14, 0.9);
+addCloud(-12, 6.8, -25, 1.4);
+addCloud(12.5, 5.2, -34, 1.1);
+addCloud(-5, 8, -43, 1.6);
+addCloud(8, 7.8, -45, 1.3);
+addCloud(0, 5.4, -23, 0.85);
 
 
 // ---------- Kuu taevas ----------
@@ -332,6 +525,7 @@ function addDesk(x, z) {
 function setEnvironment(environment) {
   const onMoon = environment === "moon";
   const inClassroom = environment === "classroom";
+  resetCloudPositions();
   if (onMoon) {
     skyMaterial.uniforms.topColor.value.set(0x020307);
     skyMaterial.uniforms.horizonColor.value.set(0x05070C);
