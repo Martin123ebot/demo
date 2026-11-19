@@ -30,15 +30,17 @@ canvas{display:block}
 .hud .k{font-size:12px;color:#4A6357;display:block;line-height:1}
 .hud .v{font-size:26px;font-weight:700;font-family:ui-monospace,Menlo,monospace;line-height:1.1}
 .hud .best{margin-left:auto;text-align:right}
-.pickers{position:absolute;top:12px;left:50%;transform:translateX(-50%);
-  display:flex;align-items:center;gap:12px;pointer-events:auto}
-.surface-picker span{font-size:12px;color:#4A6357}
-.surface-picker select{max-width:34vw;padding:7px 9px;border:1px solid #CBD8D2;
-  border-radius:8px;background:#fff;color:#12291F;font:inherit}
-.surface-picker select:disabled{opacity:.65}
-.game-actions{position:absolute;top:62px;right:16px;display:flex;gap:8px;pointer-events:auto}
+.game-actions{position:absolute;top:12px;left:0;right:0;display:flex;justify-content:center;
+  pointer-events:none;z-index:4}
 .game-actions button{padding:8px 11px;border:1px solid #CBD8D2;border-radius:8px;
-  background:#fff;color:#12291F;font:500 13px "Space Grotesk",system-ui,sans-serif;cursor:pointer}
+  background:#fff;color:#12291F;font:500 13px "Space Grotesk",system-ui,sans-serif;cursor:pointer;pointer-events:auto}
+.help{position:relative}
+.help-menu{position:absolute;top:calc(100% + 8px);right:0;width:min(320px,calc(100vw - 24px));
+  padding:14px;background:#fff;border:1px solid #CBD8D2;border-radius:10px;
+  box-shadow:0 6px 18px #12291f2b;color:#12291F}
+.help-menu[hidden]{display:none}
+.help-menu strong{font-size:14px}
+.help-menu p{margin:6px 0 0;color:#4A6357;font-size:14px;line-height:1.5}
 .settings{position:absolute;top:10px;right:16px;z-index:4;pointer-events:auto}
 #settingsButton{width:42px;height:42px;padding:0;border:1px solid #CBD8D2;border-radius:10px;
   background:#fff;color:#12291F;font:26px/1 system-ui,sans-serif;cursor:pointer}
@@ -65,8 +67,6 @@ canvas{display:block}
 #gravityMenu button{display:block;width:100%;text-align:left;border:0}
 #gravityMenu button:hover{background:#EDF1EE}
 @media(max-width:600px){
-  .pickers{top:58px;gap:6px;max-width:calc(100vw - 24px);flex-wrap:wrap;justify-content:center}
-  .game-actions{top:62px}
   .wind-indicator{top:112px}
 }
 .streak{color:#C4603C}
@@ -74,9 +74,6 @@ canvas{display:block}
 #msg{position:absolute;left:0;right:0;top:36%;text-align:center;
   font-size:34px;font-weight:700;pointer-events:none;opacity:0;transition:opacity .18s}
 #msg.on{opacity:1}
-/* Vihje ekraani all */
-#hint{position:absolute;left:0;right:0;bottom:26px;text-align:center;
-  font-size:15px;color:#4A6357;pointer-events:none}
 /* Võimsusriba ekraani allservas. Nähtav ainult tõmbamise ajal */
 #power{position:absolute;left:16px;right:16px;bottom:12px;height:6px;
   background:#CBD8D2;border-radius:3px;overflow:hidden;opacity:0;transition:opacity .15s}
@@ -96,17 +93,6 @@ canvas{display:block}
     <div><span class="k">Punktid</span><span class="v" id="hScore">0</span></div>
     <div><span class="k">Seeria</span><span class="v streak" id="hStreak">0</span></div>
     <div class="best"><span class="k">Rekord</span><span class="v" id="hBest">0</span></div>
-    <div class="pickers">
-      <label class="surface-picker" for="surfaceSelect">
-        <span>Pind</span>
-        <select id="surfaceSelect">
-          <option value="normal">Tavaline</option>
-          <option value="rubber">Kummipõrand</option>
-          <option value="mud">Muda</option>
-          <option value="sand">Liiv</option>
-        </select>
-      </label>
-    </div>
   </div>
   <div class="settings">
     <button id="settingsButton" type="button" aria-label="Ava seaded" aria-expanded="false"
@@ -137,10 +123,27 @@ canvas{display:block}
           <option value="classroom">Klassiruum</option>
         </select>
       </label>
+      <label class="settings-picker" for="surfaceSelect">
+        <span>Pind</span>
+        <select id="surfaceSelect">
+          <option value="normal">Tavaline</option>
+          <option value="rubber">Kummipõrand</option>
+          <option value="mud">Muda</option>
+          <option value="sand">Liiv</option>
+        </select>
+      </label>
     </div>
   </div>
   <div class="game-actions">
     <button id="restartButton" type="button">Alusta viset uuesti</button>
+    <div class="help">
+      <button id="helpButton" type="button" aria-label="Ava mängujuhend" aria-expanded="false"
+        aria-controls="helpMenu" title="Abi">Abi</button>
+      <div id="helpMenu" class="help-menu" hidden>
+        <strong>Kuidas mängida?</strong>
+        <p id="hint">Hoia vasakut hiirenuppu või sõrme all, tõmba üles ja lase lahti</p>
+      </div>
+    </div>
   </div>
   <div id="windIndicator" class="wind-indicator" aria-live="polite">
     <span id="windArrow" aria-hidden="true">↑</span>
@@ -148,8 +151,6 @@ canvas{display:block}
   </div>
   <!-- Suur teade keset ekraani -->
   <div id="msg"></div>
-  <!-- Vihje ekraani all -->
-  <div id="hint">Hoia vasakut hiirenuppu või sõrme all, tõmba üles ja lase lahti</div>
   <!-- Võimsusriba -->
   <div id="power"><i id="powerFill"></i></div>
 </div>
@@ -163,7 +164,7 @@ canvas{display:block}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <script src="seaded.js"></script>    <!-- ÜHINE:     kõik numbrid ja seaded -->
-<script src="menuu.js"></script>     <!-- LIIDES:    punktid, teated, (hiljem menüü) -->
+<script src="menuu.js"></script>     <!-- LIIDES:    punktid, teated, juhendivihje -->
 <script src="heli.js"></script>      <!-- LIIDES:    helid -->
 <script src="stseen.js"></script>    <!-- KUNSTNIK:  taust, kaamera, valgus, põrand -->
 <script src="objektid.js"></script>  <!-- KUNSTNIK:  tops, alustass, robot -->

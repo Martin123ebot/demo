@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------
 // Vastutaja: LIIDESE TEGIJA
 // Siin on: punktid, seeria, rekord, teated keset ekraani ("Sisse!"),
-// vihje ekraani all. Hiljem tuleb siia ka menüü.
+// juhendimenüü vihje.
 // =====================================================================
 
 
@@ -36,7 +36,7 @@ function updateHud() {
 }
 
 
-// Muudab ekraani all olevat vihjeteksti. Tühi tekst = vihje kaob.
+// Muudab juhendimenüü vihjeteksti. Tühi tekst = vihje kaob.
 function setHint(text) {
   $("hint").textContent = text;
 }

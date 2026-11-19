@@ -23,6 +23,8 @@ let spin = new THREE.Vector3(); // keha pöörlemiskiirus ümber x, y, z telje
 let settle = 0;                 // mitu sekundit on vise juba lõppenud olnud
 let selectedPlanet = "earth";
 let bounceIntoCupAttempted = false;
+let restingTarget = null;
+const restingOffset = new THREE.Vector3();
 let windFrom = new THREE.Vector3(0, 0, -1);
 let windSpeed = 0;
 const windVelocity = new THREE.Vector3();
@@ -80,7 +82,15 @@ function getTokenCollisionRadius() {
   if (tok === throwables.rock) return 0.14;
   if (tok === throwables.ball) return 0.12;
   if (tok === throwables.paperPlane) return 0.10;
+  if (tok === throwables.pillow) return 0.22;
   return 0.12;
+}
+
+
+function getTargetDimensions() {
+  return environmentSelect.value === "classroom"
+    ? { radius: BIN_R, innerRadius: BIN_INNER_R, height: BIN_H }
+    : { radius: CUP_R, innerRadius: CUP_R * 0.94, height: CUP_H };
 }
 
 
@@ -115,6 +125,7 @@ function resetToken() {
   if (tok === throwables.paperPlane) tok.rotation.set(Math.PI / 2, 0, 0);
   else tok.rotation.set(0, 0, 0);
   vel.set(0, 0, 0);
+  restingTarget = null;
   bounceIntoCupAttempted = false;
   resetWind();
   state = "aim";
@@ -204,6 +215,7 @@ function calcAimTrajectory(dx, dy, pointCount) {
 // Alustab viset: annab kehale algkiiruse ja pöörlemise.
 function startThrow(v) {
   vel.copy(v);
+  restingTarget = null;
   bounceIntoCupAttempted = false;
   clearThrowTrail();
   recordThrowTrailPoint(tok.position);
@@ -220,6 +232,11 @@ function startThrow(v) {
 // Liigutab keha ühe väikese ajasammu dt võrra edasi.
 // Kontrollib ka, kas keha tabas topsi, alustassi või maad.
 function stepFlight(dt) {
+  if (restingTarget) {
+    tok.position.copy(restingTarget.position).add(restingOffset);
+    return;
+  }
+
   const previousPosition = tok.position.clone();
   const prevY = tok.position.y;   // kõrgus enne sammu (et teada, kas keha kukkus üle topsi ääre)
 
@@ -242,15 +259,19 @@ function stepFlight(dt) {
   }
 
   // Kui kaugel on keha topsi keskelt (ülevalt vaadates).
-  const dx = tok.position.x - cup.position.x;
-  const dz = tok.position.z - cup.position.z;
+  const target = getTarget();
+  const targetDimensions = getTargetDimensions();
+  const dx = tok.position.x - target.position.x;
+  const dz = tok.position.z - target.position.z;
   const hd = Math.hypot(dx, dz);
+  const tokenRadius = getTokenCollisionRadius();
 
   // 4) Kas keha kukkus just topsi ääre kõrgusele, topsi lähedal?
-  if (prevY > CUP_H && tok.position.y <= CUP_H && vel.y < 0 && hd < CUP_R * 1.9) {
+  if (prevY > targetDimensions.height && tok.position.y <= targetDimensions.height &&
+      vel.y < 0 && hd < targetDimensions.radius * 1.9) {
 
     // 4a) Alustass on peal -> keha põrkab tagasi.
-    if (coasterOn && hd < CUP_R * 1.5) {
+    if (coasterOn && target === cup && hd < targetDimensions.radius * 1.5) {
       flashTarget();
       addCollisionFlash(tok.position);
       vel.y = Math.abs(vel.y) * COASTER.bounce;
@@ -262,10 +283,12 @@ function stepFlight(dt) {
     }
 
     // 4b) Keha on topsi suu kohal -> SISSE!
-    if (hd < CUP_R * 0.94) {
+    if (hd + tokenRadius < targetDimensions.innerRadius * 0.94) {
       flashTarget();
       state = "land"; settle = 0;
-      tok.position.set(cup.position.x, CUP_H * 0.42, cup.position.z); // pane keha topsi sisse
+      tok.position.set(target.position.x, targetDimensions.height * 0.42, target.position.z);
+      restingTarget = target;
+      restingOffset.copy(tok.position).sub(target.position);
       vel.set(0, 0, 0);
       tally(true, false); // menuu.js: "Sisse!"
       return;
@@ -280,17 +303,17 @@ function stepFlight(dt) {
   }
 
   // Peatab eseme topsi külje juures ka siis, kui vise on liiga madal sisse kukkuma.
-  const cupStartX = previousPosition.x - cup.position.x;
-  const cupStartZ = previousPosition.z - cup.position.z;
+  const cupStartX = previousPosition.x - target.position.x;
+  const cupStartZ = previousPosition.z - target.position.z;
   const segmentX = tok.position.x - previousPosition.x;
   const segmentZ = tok.position.z - previousPosition.z;
-  const radius = CUP_R + getTokenCollisionRadius();
+  const radius = targetDimensions.radius + tokenRadius;
   const segmentLengthSquared = segmentX * segmentX + segmentZ * segmentZ;
 
   if (segmentLengthSquared > 0) {
     const startDistance = Math.hypot(cupStartX, cupStartZ);
-    const endX = tok.position.x - cup.position.x;
-    const endZ = tok.position.z - cup.position.z;
+    const endX = tok.position.x - target.position.x;
+    const endZ = tok.position.z - target.position.z;
     const endDistance = Math.hypot(endX, endZ);
     const startOutside = startDistance > radius;
     const offset = cupStartX * segmentX + cupStartZ * segmentZ;
@@ -318,11 +341,11 @@ function stepFlight(dt) {
           : (startOutside ? cupStartZ : endZ) / (startOutside ? startDistance : endDistance);
         const velocityTowardWall = vel.x * normalX + vel.z * normalZ;
 
-        if (hitY >= 0.06 && hitY < CUP_H - 0.02 &&
+        if (hitY >= 0.06 && hitY < targetDimensions.height - 0.02 &&
             Math.abs(velocityTowardWall) > 0) {
           const bounceSide = startOutside ? 1 : -1;
-          tok.position.x = cup.position.x + normalX * (radius + 0.002) * bounceSide;
-          tok.position.z = cup.position.z + normalZ * (radius + 0.002) * bounceSide;
+          tok.position.x = target.position.x + normalX * (radius + 0.002) * bounceSide;
+          tok.position.z = target.position.z + normalZ * (radius + 0.002) * bounceSide;
           vel.x -= (1 + BOUNCE.rim) * velocityTowardWall * normalX;
           vel.z -= (1 + BOUNCE.rim) * velocityTowardWall * normalZ;
           flashTarget();
@@ -375,12 +398,14 @@ function stepFlight(dt) {
       vel.z *= BOUNCE.groundFriction;
       if (!bounceIntoCupAttempted) {
         bounceIntoCupAttempted = true;
-        const timeToCup = (cup.position.z - tok.position.z) / vel.z;
+        const target = getTarget();
+        const targetDimensions = getTargetDimensions();
+        const timeToCup = (target.position.z - tok.position.z) / vel.z;
         const predictedX = tok.position.x + vel.x * timeToCup;
         const gravity = getGravity();
-        const heightToCup = CUP_H - tok.position.y;
+        const heightToCup = targetDimensions.height - tok.position.y;
         if (timeToCup > Math.sqrt(2 * heightToCup / gravity) &&
-            Math.abs(predictedX - cup.position.x) < CUP_R * 0.94 &&
+            Math.abs(predictedX - target.position.x) < targetDimensions.innerRadius * 0.94 &&
             Math.random() < BOUNCE.groundCupChance) {
           vel.y = heightToCup / timeToCup + 0.5 * gravity * timeToCup;
         }
@@ -406,6 +431,7 @@ function updateCup(dt) {
   // Tops kõigub siinuse järgi: vasakule-paremale-vasakule...
   cupPhase += dt * (CUP_MOVE.baseSpeed + streak * CUP_MOVE.speedPerStreak);
   cup.position.x = Math.sin(cupPhase) * cupAmp;
+  trashBin.position.x = cup.position.x;
 
   // Alustass: alates teatud seeriast ilmub vahel juhuslikult.
   if (streak >= COASTER.fromStreak && !coasterOn && Math.random() < dt * COASTER.chance) {

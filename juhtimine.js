@@ -128,6 +128,8 @@ const gravityButton = $("gravityButton");
 const gravityMenu = $("gravityMenu");
 const settingsButton = $("settingsButton");
 const settingsMenu = $("settingsMenu");
+const helpButton = $("helpButton");
+const helpMenu = $("helpMenu");
 
 function closeSettingsMenu() {
   settingsMenu.hidden = true;
@@ -136,8 +138,14 @@ function closeSettingsMenu() {
   gravityButton.setAttribute("aria-expanded", "false");
 }
 
+function closeHelpMenu() {
+  helpMenu.hidden = true;
+  helpButton.setAttribute("aria-expanded", "false");
+}
+
 settingsButton.addEventListener("click", () => {
   const isExpanded = settingsButton.getAttribute("aria-expanded") === "true";
+  if (!isExpanded) closeHelpMenu();
   settingsMenu.hidden = isExpanded;
   settingsButton.setAttribute("aria-expanded", String(!isExpanded));
   if (isExpanded) {
@@ -146,12 +154,23 @@ settingsButton.addEventListener("click", () => {
   }
 });
 
+helpButton.addEventListener("click", () => {
+  const isExpanded = helpButton.getAttribute("aria-expanded") === "true";
+  if (!isExpanded) closeSettingsMenu();
+  helpMenu.hidden = isExpanded;
+  helpButton.setAttribute("aria-expanded", String(!isExpanded));
+});
+
 document.addEventListener("pointerdown", e => {
   if (!e.target.closest(".settings")) closeSettingsMenu();
+  if (!e.target.closest(".help")) closeHelpMenu();
 });
 
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") closeSettingsMenu();
+  if (e.key === "Escape") {
+    closeSettingsMenu();
+    closeHelpMenu();
+  }
 });
 
 PLANETS.forEach(planet => {

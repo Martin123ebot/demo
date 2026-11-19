@@ -42,6 +42,9 @@ const OBJECT_PHYSICS = {
 // ---------- Sihtmärk (tops) ----------
 const CUP_R = 0.17;   // topsi raadius (m)
 const CUP_H = 0.36;   // topsi kõrgus (m)
+const BIN_R = 0.40;   // klassiruumi prügikasti ülaserva raadius (m)
+const BIN_INNER_R = 0.34; // prügikasti ava raadius (m)
+const BIN_H = 0.52;   // klassiruumi prügikasti kõrgus (m)
 const CUP_Z = -6.0;   // kui kaugel mängijast tops on (miinus = ekraani sisse)
 
 
