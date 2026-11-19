@@ -23,6 +23,7 @@ function loop(now) {
   last = now;
 
   updateCup(dt); // fuusika.js: tops liigub, alustass ilmub/kaob
+  updateClouds(dt); // stseen.js: tuul liigutab pilvi
 
   // Kui keha lendab või maandub, liiguta seda.
   if (state === "fly" || state === "land") {

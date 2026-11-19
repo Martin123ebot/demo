@@ -34,17 +34,19 @@ const WIND = {
 // ---------- Esemete õhu- ja viskeomadused ----------
 const OBJECT_PHYSICS = {
   robot: { throwSpeed: 1, windResponse: 1, lift: 0, drag: 0, launchAngleScale: 1 },
-  rock: { throwSpeed: 0.68, windResponse: 0.35, lift: 0, drag: 0, launchAngleScale: 1 },
-  paperPlane: { throwSpeed: 1, windResponse: 1.5, lift: 0.16, drag: 0.008, launchAngleScale: 0.55 }
+  rock: { throwSpeed: 0.8, windResponse: 0.35, lift: 0, drag: 0, launchAngleScale: 0.35 },
+  paperPlane: { throwSpeed: 0.6, windResponse: 1.5, lift: 0.16, drag: 0.008, launchAngleScale: 0.55 }
 };
 
 
 // ---------- Sihtmärk (tops) ----------
 const CUP_R = 0.17;   // topsi raadius (m)
+const CUP_INNER_R = 0.15; // topsi ava siseraadius (m)
 const CUP_H = 0.36;   // topsi kõrgus (m)
 const BIN_R = 0.40;   // klassiruumi prügikasti ülaserva raadius (m)
 const BIN_INNER_R = 0.34; // prügikasti ava raadius (m)
 const BIN_H = 0.52;   // klassiruumi prügikasti kõrgus (m)
+const TOKEN_HIT_SIZE_FACTOR = 0.3; // kui palju eseme raadius vähendab avasse tabamise ala
 const CUP_Z = -6.0;   // kui kaugel mängijast tops on (miinus = ekraani sisse)
 
 

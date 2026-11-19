@@ -180,15 +180,6 @@ function updateClouds(dt) {
   });
 }
 
-let lastCloudUpdate = performance.now();
-function animateClouds(now) {
-  const dt = Math.min(0.05, (now - lastCloudUpdate) / 1000);
-  lastCloudUpdate = now;
-  updateClouds(dt);
-  requestAnimationFrame(animateClouds);
-}
-requestAnimationFrame(animateClouds);
-
 // Lisab maastikule ühe neljast erineva kujuga puu.
 function addTree(x, z, scale, style) {
   const tree = new THREE.Group();
