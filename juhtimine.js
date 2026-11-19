@@ -207,7 +207,7 @@ $("restartButton").addEventListener("click", () => {
   $("power").classList.remove("on");
   $("powerFill").style.width = "0%";
   hideAimDots();
-  $("msg").classList.remove("on");
+  if (state === "fly") tally(false, false);
   restartThrow();
 });
 
