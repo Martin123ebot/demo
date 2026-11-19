@@ -246,6 +246,16 @@ function stepFlight(dt) {
 
   // 2) Liigu kiiruse järgi edasi.
   tok.position.addScaledVector(vel, dt);
+  if (selectedPlanet === "moon" && surfaceSelect.value === "rubber" &&
+      tok.position.distanceTo(REL) >= SURFACE.moonMaxDistance) {
+    tok.position.sub(REL).normalize().multiplyScalar(SURFACE.moonMaxDistance).add(REL);
+    vel.set(0, 0, 0);
+    spin.set(0, 0, 0);
+    state = "land";
+    settle = 0;
+    tally(false, false);
+    return;
+  }
   tok.position.y = Math.max(tok.position.y, 0.06);
 
   // 3) Pöörle.
