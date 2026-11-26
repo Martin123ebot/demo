@@ -281,7 +281,7 @@ function stepFlight(dt) {
       vel.y < 0 && hd < targetDimensions.radius * 1.9) {
 
     // 4a) Alustass on peal -> keha põrkab tagasi.
-    if (coasterOn && target === cup && hd < targetDimensions.radius * 1.5) {
+    if (coasterOn && target !== trashBin && hd < targetDimensions.radius * 1.5) {
       flashTarget();
       addCollisionFlash(tok.position);
       vel.y = Math.abs(vel.y) * COASTER.bounce;
@@ -442,6 +442,7 @@ function updateCup(dt) {
   cupPhase += dt * (CUP_MOVE.baseSpeed + streak * CUP_MOVE.speedPerStreak);
   cup.position.x = Math.sin(cupPhase) * cupAmp;
   trashBin.position.x = cup.position.x;
+  moonCrater.position.x = cup.position.x;
 
   // Alustass: alates teatud seeriast ilmub vahel juhuslikult.
   if (streak >= COASTER.fromStreak && !coasterOn && Math.random() < dt * COASTER.chance) {

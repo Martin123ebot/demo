@@ -133,7 +133,7 @@ function updateFloorAppearance() {
   const normalColors = {
     earth: 0x4D9B55,
     moon: 0x92969A,
-    classroom: 0xB58A5B
+    classroom: 0xC9C1B3
   };
   const surfaceColors = {
     rubber: 0x343B3A,
@@ -373,30 +373,127 @@ addCloud(0, 5.4, -23, 0.85);
 const moonSky = new THREE.Group();
 scene.add(moonSky);
 
-const starMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-for (let i = 0; i < 90; i++) {
-  const angle = i * 2.399;
-  const x = Math.cos(angle) * (5 + (i % 9) * 1.5);
-  const y = 3 + (i % 11) * 1.15;
-  const z = -24 - (i % 7) * 5;
-  const star = new THREE.Mesh(new THREE.SphereGeometry(i % 8 === 0 ? 0.055 : 0.028, 6, 5), starMaterial);
+const starMaterials = [
+  new THREE.MeshBasicMaterial({ color: 0xFFFFFF }),
+  new THREE.MeshBasicMaterial({ color: 0xD4E7FF }),
+  new THREE.MeshBasicMaterial({ color: 0xFFE7C2 })
+];
+const starGeometries = [
+  new THREE.SphereGeometry(0.025, 6, 5),
+  new THREE.SphereGeometry(0.04, 6, 5),
+  new THREE.SphereGeometry(0.065, 6, 5)
+];
+for (let i = 0; i < 260; i++) {
+  const angle = i * 2.399963;
+  const radius = 4 + ((i * 13) % 120) / 10;
+  const x = Math.cos(angle) * radius;
+  const y = 2.3 + ((i * 37) % 108) / 10;
+  const z = -22 - ((i * 19) % 40);
+  const size = i % 23 === 0 ? 2 : (i % 6 === 0 ? 1 : 0);
+  const star = new THREE.Mesh(starGeometries[size], starMaterials[i % starMaterials.length]);
   star.position.set(x, y, z);
   moonSky.add(star);
 }
 
 const earth = new THREE.Group();
+const earthRadius = 1.25;
+const earthMapCanvas = document.createElement("canvas");
+earthMapCanvas.width = 512;
+earthMapCanvas.height = 256;
+const earthMapContext = earthMapCanvas.getContext("2d");
+const oceanGradient = earthMapContext.createLinearGradient(0, 0, 0, 256);
+oceanGradient.addColorStop(0, "#18578D");
+oceanGradient.addColorStop(0.5, "#2386C5");
+oceanGradient.addColorStop(1, "#123C73");
+earthMapContext.fillStyle = oceanGradient;
+earthMapContext.fillRect(0, 0, 512, 256);
+
+function drawEarthContinent(points, color) {
+  earthMapContext.beginPath();
+  earthMapContext.moveTo(points[0][0], points[0][1]);
+  for (let i = 1; i < points.length; i++) {
+    earthMapContext.lineTo(points[i][0], points[i][1]);
+  }
+  earthMapContext.closePath();
+  earthMapContext.fillStyle = color;
+  earthMapContext.fill();
+  earthMapContext.strokeStyle = "#4B9660";
+  earthMapContext.lineWidth = 2;
+  earthMapContext.stroke();
+}
+
+drawEarthContinent(
+  [[27, 85], [35, 67], [57, 48], [78, 42], [96, 53], [118, 57], [127, 75],
+    [114, 91], [123, 108], [105, 121], [91, 137], [75, 120], [57, 115], [45, 99]],
+  "#69B873");
+drawEarthContinent([[87, 38], [96, 24], [116, 28], [127, 41], [111, 55], [94, 52]], "#B8D7A0");
+drawEarthContinent([[105, 119], [123, 121], [139, 137], [132, 152], [115, 145]], "#64AD6C");
+drawEarthContinent(
+  [[115, 145], [132, 150], [143, 166], [138, 187], [129, 210], [120, 236],
+    [110, 217], [105, 190], [99, 167], [102, 151]],
+  "#62AA68");
+drawEarthContinent([[212, 78], [229, 66], [250, 70], [265, 83], [251, 98], [231, 100], [216, 92]], "#75BD76");
+drawEarthContinent(
+  [[228, 101], [249, 98], [268, 111], [277, 133], [266, 158], [259, 185],
+    [244, 208], [232, 183], [225, 156], [218, 132]],
+  "#65AE6C");
+drawEarthContinent(
+  [[261, 70], [286, 59], [315, 63], [340, 70], [368, 72], [397, 88],
+    [388, 105], [363, 113], [343, 105], [325, 117], [301, 108], [282, 116], [264, 98]],
+  "#71B978");
+drawEarthContinent([[290, 111], [309, 116], [317, 136], [306, 154], [295, 139]], "#61A96A");
+drawEarthContinent([[361, 165], [383, 158], [405, 169], [414, 187], [395, 199], [372, 191]], "#76B979");
+drawEarthContinent([[415, 105], [422, 109], [420, 120], [414, 116]], "#73B878");
+
+const earthTexture = new THREE.CanvasTexture(earthMapCanvas);
 const earthGlobe = new THREE.Mesh(
-  new THREE.SphereGeometry(1.25, 24, 16),
-  new THREE.MeshBasicMaterial({ color: 0x287BB8 }));
-earth.add(earthGlobe);
-const continentMaterial = new THREE.MeshBasicMaterial({ color: 0x55A66A });
-[[0.28, 0.42, 0.9], [-0.38, -0.1, 0.82], [0.55, -0.4, 0.7], [-0.05, -0.62, 0.68]]
-  .forEach(([x, y, size]) => {
-    const continent = new THREE.Mesh(new THREE.SphereGeometry(size, 10, 8), continentMaterial);
-    continent.position.set(x, y, 0.72);
-    continent.scale.set(1, 0.72, 0.18);
-    earth.add(continent);
-  });
+  new THREE.SphereGeometry(earthRadius, 48, 32),
+  new THREE.MeshPhongMaterial({
+    map: earthTexture,
+    specular: 0x6EAEDC,
+    shininess: 18
+  }));
+const earthAtmosphere = new THREE.Mesh(
+  new THREE.SphereGeometry(earthRadius * 1.08, 32, 24),
+  new THREE.MeshBasicMaterial({
+    color: 0x55B8F3,
+    transparent: true,
+    opacity: 0.2,
+    side: THREE.BackSide,
+    depthWrite: false
+  }));
+
+const cloudCanvas = document.createElement("canvas");
+cloudCanvas.width = 512;
+cloudCanvas.height = 256;
+const cloudContext = cloudCanvas.getContext("2d");
+cloudContext.lineCap = "round";
+cloudContext.lineWidth = 7;
+cloudContext.strokeStyle = "rgba(255,255,255,0.46)";
+[
+  [[32, 93], [58, 76], [83, 105], [112, 91]],
+  [[125, 173], [145, 161], [157, 181], [169, 169]],
+  [[213, 122], [230, 108], [247, 130], [266, 115]],
+  [[286, 84], [310, 97], [333, 77], [356, 92]],
+  [[350, 181], [374, 165], [396, 187], [420, 174]]
+].forEach(([start, controlA, controlB, end]) => {
+  cloudContext.beginPath();
+  cloudContext.moveTo(start[0], start[1]);
+  cloudContext.bezierCurveTo(
+    controlA[0], controlA[1], controlB[0], controlB[1], end[0], end[1]);
+  cloudContext.stroke();
+});
+const cloudTexture = new THREE.CanvasTexture(cloudCanvas);
+const earthClouds = new THREE.Mesh(
+  new THREE.SphereGeometry(earthRadius * 1.008, 40, 28),
+  new THREE.MeshBasicMaterial({
+    map: cloudTexture,
+    transparent: true,
+    opacity: 0.8,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  }));
+earth.add(earthAtmosphere, earthGlobe, earthClouds);
 earth.position.set(0, 4.7, -25);
 moonSky.add(earth);
 
@@ -434,55 +531,73 @@ const trimMaterial = new THREE.MeshLambertMaterial({ color: 0xB6A98F });
 const boardMaterial = new THREE.MeshLambertMaterial({ color: 0x285B49 });
 const woodMaterial = new THREE.MeshLambertMaterial({ color: 0xA97848 });
 
-const backWall = new THREE.Mesh(new THREE.BoxGeometry(50, 24, 0.35), wallMaterial);
-backWall.position.set(0, 9, -31);
+const backWall = new THREE.Mesh(new THREE.BoxGeometry(21.35, 14, 0.35), wallMaterial);
+backWall.position.set(0, 7, -25.4);
 classroom.add(backWall);
 
+const lowerWall = new THREE.Mesh(
+  new THREE.BoxGeometry(21.1, 1.8, 0.08),
+  new THREE.MeshLambertMaterial({ color: 0xB88958 }));
+lowerWall.position.set(0, 0.9, -25.17);
+classroom.add(lowerWall);
+for (let i = 0; i < 20; i++) {
+  const panelSeam = new THREE.Mesh(
+    new THREE.BoxGeometry(0.035, 1.65, 0.04),
+    new THREE.MeshLambertMaterial({ color: 0x986A42 }));
+  panelSeam.position.set(-10 + i * 1.05, 0.9, -25.1);
+  classroom.add(panelSeam);
+}
+
 [-1, 1].forEach(side => {
-  const sideWall = new THREE.Mesh(new THREE.BoxGeometry(0.35, 24, 34), wallMaterial);
-  sideWall.position.set(side * 14, 9, -17);
+  const sideWall = new THREE.Mesh(new THREE.BoxGeometry(0.35, 14, 25.4), wallMaterial);
+  sideWall.position.set(side * 10.5, 7, -12.7);
   classroom.add(sideWall);
 
-  const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(5.1, 4.1, 0.18), trimMaterial);
-  windowFrame.position.set(side * 10.5, 7.5, -30.72);
+  const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(4.4, 3.9, 0.18), trimMaterial);
+  windowFrame.position.set(side * 8, 3.8, -25.05);
   classroom.add(windowFrame);
   const windowGlass = new THREE.Mesh(
-    new THREE.BoxGeometry(4.65, 3.65, 0.1),
+    new THREE.BoxGeometry(4, 3.5, 0.1),
     new THREE.MeshLambertMaterial({ color: 0x91CBE0, emissive: 0x233B44 }));
-  windowGlass.position.set(side * 10.5, 7.5, -30.59);
+  windowGlass.position.set(side * 8, 3.8, -24.9);
   classroom.add(windowGlass);
-  const windowBar = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.65, 0.12), trimMaterial);
-  windowBar.position.set(side * 10.5, 7.5, -30.5);
+  const windowBar = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.5, 0.12), trimMaterial);
+  windowBar.position.set(side * 8, 3.8, -24.83);
   classroom.add(windowBar);
 });
 
 const chalkboard = new THREE.Mesh(
-  new THREE.BoxGeometry(13, 4.8, 0.22),
+  new THREE.BoxGeometry(8.4, 3.4, 0.22),
   new THREE.MeshLambertMaterial({ color: 0x235440 }));
-chalkboard.position.set(0, 5.8, -30.72);
+chalkboard.position.set(1.2, 3.8, -25.1);
 classroom.add(chalkboard);
 const boardFrame = new THREE.Mesh(
-  new THREE.BoxGeometry(13.4, 5.2, 0.14),
+  new THREE.BoxGeometry(8.8, 3.8, 0.14),
   new THREE.MeshLambertMaterial({ color: 0x755139 }));
-boardFrame.position.set(0, 5.8, -30.88);
+boardFrame.position.set(1.2, 3.8, -25.25);
 classroom.add(boardFrame);
 
+const doorFrame = new THREE.Mesh(
+  new THREE.BoxGeometry(0.14, 6.35, 2.35),
+  trimMaterial);
+doorFrame.position.set(-10.28, 3.2, -18.5);
+classroom.add(doorFrame);
 const door = new THREE.Mesh(
-  new THREE.BoxGeometry(2.8, 6.5, 0.18),
+  new THREE.BoxGeometry(0.18, 6.1, 2.1),
   new THREE.MeshLambertMaterial({ color: 0x8B6848 }));
-door.position.set(-10, 3.4, -30.65);
+door.position.set(-10.12, 3.1, -18.5);
 classroom.add(door);
 const doorKnob = new THREE.Mesh(
   new THREE.SphereGeometry(0.12, 8, 6),
   new THREE.MeshLambertMaterial({ color: 0xD6B35F }));
-doorKnob.position.set(-9.1, 3.4, -30.48);
+doorKnob.position.set(-9.98, 3.1, -17.85);
 classroom.add(doorKnob);
 
 const clock = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.85, 0.85, 0.16, 24),
+  new THREE.CylinderGeometry(0.7, 0.7, 0.16, 24),
   new THREE.MeshLambertMaterial({ color: 0xF4F0E6 }));
 clock.rotation.x = Math.PI / 2;
-clock.position.set(10, 9.5, -30.65);
+clock.position.set(8, 11, -25.05);
 classroom.add(clock);
 
 function addDesk(x, z) {
@@ -509,6 +624,7 @@ function addDesk(x, z) {
     chair.add(leg);
   }));
   chair.position.set(0, 0, 1.1);
+  chair.rotation.y = Math.PI;
   desk.add(chair);
   desk.position.set(x, 0, z);
   desk.traverse(part => {
@@ -520,7 +636,7 @@ function addDesk(x, z) {
   classroom.add(desk);
 }
 
-[-3.7, 3.7].forEach(x => [-9, -15, -21].forEach(z => addDesk(x, z)));
+[-3.2, 3.2].forEach(x => [-10, -16].forEach(z => addDesk(x, z)));
 
 function setEnvironment(environment) {
   const onMoon = environment === "moon";
