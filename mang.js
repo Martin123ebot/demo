@@ -23,6 +23,7 @@ function loop(now) {
   last = now;
 
   updateCup(dt); // fuusika.js: tops liigub, alustass ilmub/kaob
+  updateClouds(dt); // stseen.js: tuul liigutab pilvi
 
   // Kui keha lendab või maandub, liiguta seda.
   if (state === "fly" || state === "land") {
@@ -36,6 +37,10 @@ function loop(now) {
   objectSelect.disabled = state !== "aim";
   surfaceSelect.disabled = state !== "aim";
   environmentSelect.disabled = state !== "aim";
+  gravityButton.disabled = state !== "aim";
+  gravityMenu.querySelectorAll("button[data-planet]").forEach(option => {
+    option.disabled = state !== "aim";
+  });
   updateVisualEffects(dt);
   updateTokenShadow();
   renderer.render(scene, camera); // stseen.js: joonista pilt

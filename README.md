@@ -12,6 +12,8 @@ Tavalisel põrandal võib topsi poole sihitud vise 35% tõenäosusega õnnestuda
 
 Topsi külge põrkab ese tagasi, mitte ei lenda sellest läbi; see kehtib ka madala viske puhul.
 
+Topsi tabamist kontrollitakse eseme keskpunkti järgi kõrguse ületamise hetkel ning serv põrkab ainult tegeliku kokkupuute korral. Avasse tabamise suurusevaru saab muuta `TOKEN_HIT_SIZE_FACTOR` väärtusega failis `seaded.js`. Paberlennuki tõstejõud sõltub gravitatsioonist ja jääb alati gravitatsioonist nõrgemaks.
+
 Maal valitakse iga uue viske eel juhuslik tuule suund ja kiirus. Ekraani nurgas olev nool näitab, kuhu tuul puhub, ja kõrval kuvatakse tuule kiirus; tuul mõjutab eseme lendu ja sihtimise punktiiri. Kuul ja klassiruumis tuult ei ole.
 
 Kivi saab sama tõmbega väiksema algkiiruse kui robot ning tuul mõjutab seda vähem. Paberlennuk saab madalama viskenurga, tuule mõju, õhutakistuse ja kiirusest sõltuva tõstejõu, nii et see liugleb nagu paberlennuk; lennuki asend järgib lennusuunda ning sihtimise punktiir arvestab sama lennumudelit.

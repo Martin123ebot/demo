@@ -59,7 +59,7 @@ craterFootprint.position.y = 0.01;
 
 const craterBowl = new THREE.Mesh(
   new THREE.LatheGeometry([
-    new THREE.Vector2(CUP_R * 0.94, 0.03),
+    new THREE.Vector2(CUP_INNER_R, 0.03),
     new THREE.Vector2(CUP_R * 0.98, 0.045),
     new THREE.Vector2(CUP_R * 1.02, 0.16),
     new THREE.Vector2(CUP_R * 1.04, CUP_H),
@@ -71,13 +71,13 @@ craterBowl.castShadow = true;
 craterBowl.receiveShadow = true;
 
 const craterPit = new THREE.Mesh(
-  new THREE.CircleGeometry(CUP_R * 0.94, 32),
+  new THREE.CircleGeometry(CUP_INNER_R, 32),
   new THREE.MeshLambertMaterial({ color: 0x303437 }));
 craterPit.rotation.x = -Math.PI / 2;
 craterPit.position.y = 0.031;
 
 const craterInnerRim = new THREE.Mesh(
-  new THREE.TorusGeometry(CUP_R * 0.94 + 0.012, 0.012, 8, 24),
+  new THREE.TorusGeometry(CUP_R, 0.018, 10, 32),
   new THREE.MeshLambertMaterial({ color: 0x898D91 }));
 craterInnerRim.rotation.x = Math.PI / 2;
 craterInnerRim.position.y = CUP_H;
