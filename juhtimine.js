@@ -186,6 +186,11 @@ function updateGravityButton() {
   gravityButton.textContent = "Gravitatsioon: " + planet.name + " (" + planet.gravity.toFixed(2) + " m/s²)";
 }
 
+environmentSelect.addEventListener("change", () => {
+  selectGravityPlanet(environmentSelect.value === "moon" ? "moon" : "earth");
+  updateGravityButton();
+});
+
 gravityButton.addEventListener("click", () => {
   const isExpanded = gravityButton.getAttribute("aria-expanded") === "true";
   gravityButton.setAttribute("aria-expanded", String(!isExpanded));
