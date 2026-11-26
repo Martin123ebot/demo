@@ -15,7 +15,35 @@ const $ = id => document.getElementById(id);
 // ---------- Mängija tulemused ----------
 let score = 0;   // punktid kokku
 let streak = 0;  // mitu korda järjest on sisse visatud (seeria)
-let best = 0;    // parim tulemus (rekord)
+const BEST_STREAK_KEY = "viskemang.bestStreak";
+let storageWarningShown = false;
+
+function warnStorageUnavailable(error) {
+  if (storageWarningShown) return;
+  storageWarningShown = true;
+  console.warn("Rekordi salvestamine pole saadaval; mäng jätkab sessioonipõhise rekordiga.", error);
+}
+
+function loadBestStreak() {
+  try {
+    const saved = window.localStorage.getItem(BEST_STREAK_KEY);
+    const value = Number(saved);
+    return Number.isInteger(value) && value >= 0 ? value : 0;
+  } catch (error) {
+    warnStorageUnavailable(error);
+    return 0;
+  }
+}
+
+function saveBestStreak() {
+  try {
+    window.localStorage.setItem(BEST_STREAK_KEY, String(best));
+  } catch (error) {
+    warnStorageUnavailable(error);
+  }
+}
+
+let best = loadBestStreak();
 
 
 // Näitab hetkeks suurt teksti keset ekraani, näiteks "Sisse!" või "Mööda".
@@ -36,9 +64,9 @@ function updateHud() {
 }
 
 
-// Muudab juhendimenüü vihjeteksti. Tühi tekst = vihje kaob.
+// Hoia mängujuhendi juhis alles ka lennu ajal.
 function setHint(text) {
-  $("hint").textContent = text;
+  $("hint").textContent = text || "Hoia vasakut hiirenuppu või sõrme all, tõmba üles ja lase lahti";
 }
 
 
@@ -49,7 +77,10 @@ function tally(hit, blocked) {
     streak++;
     const points = SCORE.hit * 2 ** (streak - 1);
     score += points;
-    best = Math.max(best, score);
+    if (streak > best) {
+      best = streak;
+      saveBestStreak();
+    }
     flash((streak > 2 ? "Seeria " + streak + "! " : "Sisse! ") + "+" + points, "#1D6E56");
     playHitSound();
   } else {
