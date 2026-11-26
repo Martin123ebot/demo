@@ -285,115 +285,117 @@ function stepFlight(dt) {
   const targetDimensions = getTargetDimensions();
   const tokenRadius = getTokenCollisionRadius();
 
-  // Kontrolli sihtmärgi kõrguse ületamise täpset kohta kaadri sees.
-  if (prevY > targetDimensions.height && tok.position.y <= targetDimensions.height &&
-      vel.y < 0) {
-    const crossingT = (prevY - targetDimensions.height) / (prevY - tok.position.y);
-    const crossingX = previousPosition.x + (tok.position.x - previousPosition.x) * crossingT;
-    const crossingZ = previousPosition.z + (tok.position.z - previousPosition.z) * crossingT;
-    const dx = crossingX - target.position.x;
-    const dz = crossingZ - target.position.z;
-    const crossingDistance = Math.hypot(dx, dz);
-    const hitRadius = tokenRadius < targetDimensions.innerRadius
-      ? targetDimensions.innerRadius - tokenRadius * TOKEN_HIT_SIZE_FACTOR
-      : 0;
+  if (state === "fly") {
+    // Kontrolli sihtmärgi kõrguse ületamise täpset kohta kaadri sees.
+    if (prevY > targetDimensions.height && tok.position.y <= targetDimensions.height &&
+        vel.y < 0) {
+      const crossingT = (prevY - targetDimensions.height) / (prevY - tok.position.y);
+      const crossingX = previousPosition.x + (tok.position.x - previousPosition.x) * crossingT;
+      const crossingZ = previousPosition.z + (tok.position.z - previousPosition.z) * crossingT;
+      const dx = crossingX - target.position.x;
+      const dz = crossingZ - target.position.z;
+      const crossingDistance = Math.hypot(dx, dz);
+      const hitRadius = tokenRadius < targetDimensions.innerRadius
+        ? targetDimensions.innerRadius - tokenRadius * TOKEN_HIT_SIZE_FACTOR
+        : 0;
 
-    // 4a) Alustass on peal -> keha põrkab tagasi.
-    if (coasterOn && target === cup && crossingDistance <= targetDimensions.radius + tokenRadius) {
-      flashTarget();
-      addCollisionFlash(tok.position);
-      vel.y = Math.abs(vel.y) * COASTER.bounce;
-      const length = crossingDistance || 1;
-      vel.x += (crossingDistance > 0 ? dx / length : 0) * COASTER.push;
-      vel.z += (crossingDistance > 0 ? dz / length : 0) * COASTER.push;
-      state = "land"; settle = 0;
-      tally(false, true); // menuu.js: "Alustass!"
-      return;
-    }
+      // 4a) Alustass on peal -> keha põrkab tagasi.
+      if (coasterOn && target === cup && crossingDistance <= targetDimensions.radius + tokenRadius) {
+        flashTarget();
+        addCollisionFlash(tok.position);
+        vel.y = Math.abs(vel.y) * COASTER.bounce;
+        const length = crossingDistance || 1;
+        vel.x += (crossingDistance > 0 ? dx / length : 0) * COASTER.push;
+        vel.z += (crossingDistance > 0 ? dz / length : 0) * COASTER.push;
+        state = "land"; settle = 0;
+        tally(false, true); // menuu.js: "Alustass!"
+        return;
+      }
 
-    // 4b) Keha on topsi suu kohal -> SISSE!
-    if (tokenRadius < targetDimensions.innerRadius && crossingDistance <= hitRadius) {
-      flashTarget();
-      state = "land"; settle = 0;
-      tok.position.set(target.position.x, targetDimensions.height * 0.42, target.position.z);
-      restingTarget = target;
-      restingOffset.copy(tok.position).sub(target.position);
-      vel.set(0, 0, 0);
-      tally(true, false); // menuu.js: "Sisse!"
-      return;
-    }
+      // 4b) Keha on topsi suu kohal -> SISSE!
+      if (tokenRadius < targetDimensions.innerRadius && crossingDistance <= hitRadius) {
+        flashTarget();
+        state = "land"; settle = 0;
+        tok.position.set(target.position.x, targetDimensions.height * 0.42, target.position.z);
+        restingTarget = target;
+        restingOffset.copy(tok.position).sub(target.position);
+        vel.set(0, 0, 0);
+        tally(true, false); // menuu.js: "Sisse!"
+        return;
+      }
 
-    // Serv põrkab ainult siis, kui eseme mõõtmed ulatuvad päriselt ääre rõngani.
-    const touchesRim = crossingDistance + tokenRadius >= targetDimensions.innerRadius &&
-      crossingDistance - tokenRadius <= targetDimensions.rimOuterRadius;
-    if (touchesRim) {
-      flashTarget();
-      addCollisionFlash(tok.position);
-      vel.y = Math.abs(vel.y) * BOUNCE.rim;
-      if (crossingDistance > 0) {
-        vel.x += (dx / crossingDistance) * BOUNCE.rimPush;
-        vel.z += (dz / crossingDistance) * BOUNCE.rimPush;
-      } else {
-        const horizontalSpeed = Math.hypot(vel.x, vel.z);
-        if (horizontalSpeed > 0) {
-          vel.x -= (vel.x / horizontalSpeed) * BOUNCE.rimPush;
-          vel.z -= (vel.z / horizontalSpeed) * BOUNCE.rimPush;
+      // Serv põrkab ainult siis, kui eseme mõõtmed ulatuvad päriselt ääre rõngani.
+      const touchesRim = crossingDistance + tokenRadius >= targetDimensions.innerRadius &&
+        crossingDistance - tokenRadius <= targetDimensions.rimOuterRadius;
+      if (touchesRim) {
+        flashTarget();
+        addCollisionFlash(tok.position);
+        vel.y = Math.abs(vel.y) * BOUNCE.rim;
+        if (crossingDistance > 0) {
+          vel.x += (dx / crossingDistance) * BOUNCE.rimPush;
+          vel.z += (dz / crossingDistance) * BOUNCE.rimPush;
+        } else {
+          const horizontalSpeed = Math.hypot(vel.x, vel.z);
+          if (horizontalSpeed > 0) {
+            vel.x -= (vel.x / horizontalSpeed) * BOUNCE.rimPush;
+            vel.z -= (vel.z / horizontalSpeed) * BOUNCE.rimPush;
+          }
         }
       }
     }
-  }
 
-  // Peatab eseme topsi külje juures ka siis, kui vise on liiga madal sisse kukkuma.
-  const cupStartX = previousPosition.x - target.position.x;
-  const cupStartZ = previousPosition.z - target.position.z;
-  const segmentX = tok.position.x - previousPosition.x;
-  const segmentZ = tok.position.z - previousPosition.z;
-  const radius = targetDimensions.radius + tokenRadius;
-  const segmentLengthSquared = segmentX * segmentX + segmentZ * segmentZ;
+    // Peatab eseme topsi külje juures ka siis, kui vise on liiga madal sisse kukkuma.
+    const cupStartX = previousPosition.x - target.position.x;
+    const cupStartZ = previousPosition.z - target.position.z;
+    const segmentX = tok.position.x - previousPosition.x;
+    const segmentZ = tok.position.z - previousPosition.z;
+    const radius = targetDimensions.radius + tokenRadius;
+    const segmentLengthSquared = segmentX * segmentX + segmentZ * segmentZ;
 
-  if (segmentLengthSquared > 0) {
-    const startDistance = Math.hypot(cupStartX, cupStartZ);
-    const endX = tok.position.x - target.position.x;
-    const endZ = tok.position.z - target.position.z;
-    const endDistance = Math.hypot(endX, endZ);
-    const startOutside = startDistance > radius;
-    const offset = cupStartX * segmentX + cupStartZ * segmentZ;
-    const discriminant = offset * offset -
-      segmentLengthSquared * (cupStartX * cupStartX + cupStartZ * cupStartZ - radius * radius);
+    if (segmentLengthSquared > 0) {
+      const startDistance = Math.hypot(cupStartX, cupStartZ);
+      const endX = tok.position.x - target.position.x;
+      const endZ = tok.position.z - target.position.z;
+      const endDistance = Math.hypot(endX, endZ);
+      const startOutside = startDistance > radius;
+      const offset = cupStartX * segmentX + cupStartZ * segmentZ;
+      const discriminant = offset * offset -
+        segmentLengthSquared * (cupStartX * cupStartX + cupStartZ * cupStartZ - radius * radius);
 
-    if (discriminant >= 0) {
-      const root = Math.sqrt(discriminant);
-      const firstT = (-offset - root) / segmentLengthSquared;
-      const secondT = (-offset + root) / segmentLengthSquared;
-      const hitT = startOutside ? firstT : secondT;
-      const crossedWall = startOutside
-        ? hitT >= 0 && hitT <= 1
-        : endDistance > radius && hitT >= 0 && hitT <= 1;
-      if (crossedWall) {
-        const hitX = cupStartX + segmentX * hitT;
-        const hitZ = cupStartZ + segmentZ * hitT;
-        const hitY = previousPosition.y + (tok.position.y - previousPosition.y) * hitT;
-        const hitDistance = Math.hypot(hitX, hitZ);
-        const normalX = hitDistance > 0
-          ? hitX / hitDistance
-          : (startOutside ? cupStartX : endX) / (startOutside ? startDistance : endDistance);
-        const normalZ = hitDistance > 0
-          ? hitZ / hitDistance
-          : (startOutside ? cupStartZ : endZ) / (startOutside ? startDistance : endDistance);
-        const velocityTowardWall = vel.x * normalX + vel.z * normalZ;
+      if (discriminant >= 0) {
+        const root = Math.sqrt(discriminant);
+        const firstT = (-offset - root) / segmentLengthSquared;
+        const secondT = (-offset + root) / segmentLengthSquared;
+        const hitT = startOutside ? firstT : secondT;
+        const crossedWall = startOutside
+          ? hitT >= 0 && hitT <= 1
+          : endDistance > radius && hitT >= 0 && hitT <= 1;
+        if (crossedWall) {
+          const hitX = cupStartX + segmentX * hitT;
+          const hitZ = cupStartZ + segmentZ * hitT;
+          const hitY = previousPosition.y + (tok.position.y - previousPosition.y) * hitT;
+          const hitDistance = Math.hypot(hitX, hitZ);
+          const normalX = hitDistance > 0
+            ? hitX / hitDistance
+            : (startOutside ? cupStartX : endX) / (startOutside ? startDistance : endDistance);
+          const normalZ = hitDistance > 0
+            ? hitZ / hitDistance
+            : (startOutside ? cupStartZ : endZ) / (startOutside ? startDistance : endDistance);
+          const velocityTowardWall = vel.x * normalX + vel.z * normalZ;
 
-        if (hitY >= 0.06 && hitY < targetDimensions.height - 0.02 &&
-            Math.abs(velocityTowardWall) > 0) {
-          const bounceSide = startOutside ? 1 : -1;
-          tok.position.x = target.position.x + normalX * (radius + 0.002) * bounceSide;
-          tok.position.z = target.position.z + normalZ * (radius + 0.002) * bounceSide;
-          vel.x -= (1 + BOUNCE.rim) * velocityTowardWall * normalX;
-          vel.z -= (1 + BOUNCE.rim) * velocityTowardWall * normalZ;
-          flashTarget();
-          addCollisionFlash(new THREE.Vector3(
-            target.position.x + hitX,
-            hitY,
-            target.position.z + hitZ));
+          if (hitY >= 0.06 && hitY < targetDimensions.height - 0.02 &&
+              Math.abs(velocityTowardWall) > 0) {
+            const bounceSide = startOutside ? 1 : -1;
+            tok.position.x = target.position.x + normalX * (radius + 0.002) * bounceSide;
+            tok.position.z = target.position.z + normalZ * (radius + 0.002) * bounceSide;
+            vel.x -= (1 + BOUNCE.rim) * velocityTowardWall * normalX;
+            vel.z -= (1 + BOUNCE.rim) * velocityTowardWall * normalZ;
+            flashTarget();
+            addCollisionFlash(new THREE.Vector3(
+              target.position.x + hitX,
+              hitY,
+              target.position.z + hitZ));
+          }
         }
       }
     }
